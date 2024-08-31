@@ -14,7 +14,7 @@ different beast. This was my first foray into a purely C++ codebase.
 Once you build the simulation, you can control gravity with WASD keys. This
 allows for some very pretty fluid dynamics!
 
- <img src="" width="400"> 
+ <img src="https://raw.githubusercontent.com/walkerjameschris/verlet-motion/main/img/particles.png" width="400"> 
 
 # Requirements
 
