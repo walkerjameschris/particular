@@ -219,7 +219,7 @@ struct Particles {
             circle.setFillColor(particle_color);
             window.draw(circle);
         }
-
-		window.display();
+        
+        window.display();
     }
 };
