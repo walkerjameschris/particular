@@ -12,7 +12,12 @@ writing extensions for R via `Rcpp`. However, a pure C++ project is an entirely
 different beast. This was my first foray into a purely C++ codebase.
 
 Once you build the simulation, you can control gravity with WASD keys. This
-allows for some very pretty fluid dynamics!
+allows for some very pretty fluid dynamics! Currently, the simulation is single
+threaded and uses a high-performance simulation grid system designed to make
+the collision algorithim move from $O(N^2)$ to approximately $O(N)$. On my laptop,
+which is an x86 Linux machine, I can acheive good frame rates for about 5000
+particles. Without these algorithimic improvements, I could only handle around
+500 particles. I plan to add multithreading for better performance in the future!
 
  <img src="https://raw.githubusercontent.com/walkerjameschris/verlet-motion/main/img/particles.png" width="400"> 
 
