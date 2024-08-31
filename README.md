@@ -9,14 +9,26 @@ I made several prototypes in Python, but found that the language simply did not
 have the necessary horsepower, desipite the use of `numba` and `numpy`. Thus,
 I transitioned this to C++. I have some experience working with C++ through
 writing extensions for R via `Rcpp`. However, a pure C++ project is an entirely
-different beast. I also found that C++ was generally a pretty nice language to
-work with _so long as_ you stick with less esoteric features. If you stick
-to `for () {}` loops, basic types, `vectors` from the standard library, plus
-some other quality of life things (e.g., namespaces and classes), it isn't too
-bad!
+different beast. This was my first foray into a purely C++ codebase.
+
+Once you build the simulation, you can control gravity with WASD keys. This
+allows for some very pretty fluid dynamics!
+
+ <img src="" width="400"> 
+
+# Requirements
+
+This project depends on `SFML` to display the simulation window. This is an
+excellent C++ library that makes displaying particles in C++ similarly
+challenging to `pygame` in Python. Which is to say, not challenging at all!
 
 # Contents
 
+* `CMakeLists.txt`: A CMake file desined for cross-platform compilation
 * `main.cpp`: The driver file for the simulation with `SFML`
-* `particle.h`: The header file defining particle behavior
-* `build.sh`: Build instructions (currently only Linux is supported)
+* `src/particle.h`: The header file defining particle behavior
+
+# Resources
+
+* [SFML](https://www.sfml-dev.org/)
+* [CMake](https://cmake.org/cmake/help/latest/guide/tutorial/index.html)

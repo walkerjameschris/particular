@@ -1,67 +1,92 @@
 #include <SFML/Graphics.hpp>
 #include <vector>
 #include <cmath>
-#include "particle.h"
+#include "src/particle.hpp"
 
 #define DISPLAY 500
 #define N_PARTICLE 5000
 #define FRAME_RATE 60
-#define RADIUS 3
-#define DELAY 0
-#define GRAVITY 1000
-#define BOUND_RATIO 0.45
-#define THROTTLE 0.5
+#define RADIUS 2
 #define SUBSTEPS 8
 #define N_GRID 35
+#define GRAVITY 1000
+#define CHECK 60
 
 int main() {
 
+    // Initialization
     sf::VideoMode window_scale(DISPLAY, DISPLAY);
     sf::RenderWindow window(window_scale, "Verlet Particle Simulation");
     sf::Clock clock;
-    sf::Clock fps_clock;
-    float last = 0;
-    int cycles = 0;
 
-    window.setFramerateLimit(FRAME_RATE);
+    // Window adjustments
+    unsigned int rescale = DISPLAY * 2;
+    window.setFramerateLimit(int(FRAME_RATE));
+    window.setSize(sf::Vector2(rescale, rescale));
 
-    float center = DISPLAY / 2;
-    float bound = float(DISPLAY) * float(BOUND_RATIO);
+    // Dynamic parameters
+    float gravity_x = 0.0;
+    float gravity_y = GRAVITY;
     float dt = 1 / (float(FRAME_RATE) * float(SUBSTEPS));
+    int cycles;
 
-    Particles particles = {DISPLAY / N_GRID};
+    // Particle container
+    Particles particles = {
+        N_PARTICLE,
+        N_GRID,
+        DISPLAY,
+        RADIUS
+    };
 
+    // Main simulation
     while (window.isOpen()) {
 
+        // Handle events and cycle counter
         sf::Event event;
+        cycles += 1;
 
+        // Handle exits
         while (window.pollEvent(event)) {
             if (event.type == sf::Event::Closed) {
                 window.close();
             }
         }
 
-        particles.generate(clock, N_PARTICLE, DELAY);
-
-        for (int substep = 0; substep < SUBSTEPS; substep++) {
-            particles.impose_bounds(DISPLAY, RADIUS);
-            particles.assign_grid();
-            particles.collide_grid(THROTTLE, RADIUS, DISPLAY);
-            particles.move(GRAVITY, dt);
+        // User adjusted gravity
+        if (sf::Keyboard::isKeyPressed(sf::Keyboard::W)) {
+            gravity_x = 0;
+            gravity_y = -GRAVITY;
+        } else if (sf::Keyboard::isKeyPressed(sf::Keyboard::A)) {
+            gravity_x = -GRAVITY;
+            gravity_y = 0;
+        } else if (sf::Keyboard::isKeyPressed(sf::Keyboard::D)) {
+            gravity_x = GRAVITY;
+            gravity_y = 0;
+        } else {
+            gravity_x = 0;
+            gravity_y = GRAVITY;
         }
 
-        if (cycles == 60) {
-            printf(
-                "FPS: %3.2f N: %i\n",
-                60 / fps_clock.getElapsedTime().asSeconds(),
-                int(particles.x_pos.size())
-            );
-            fps_clock.restart();
+        // New particle generation
+        particles.generate();
+
+        // Substep simulation solver
+        for (int i = 0; i < SUBSTEPS; i++) {
+            particles.impose_bounds();
+            particles.assign_grid();
+            particles.collide_grid();
+            particles.move(gravity_x, gravity_y, dt);
+        }
+
+        // Prints FPS counter to terminal
+        if (cycles == CHECK) {
+            float fps = float(CHECK) / clock.getElapsedTime().asSeconds();
+            int n = int(particles.x_pos.size());
+            printf("FPS: %3.1f Particles: %i\n", fps, n);
+            clock.restart();
             cycles = 0;
         }
-        
 
-        cycles += 1;
-        particles.render(window, RADIUS);
+        particles.render(window);
     }
 }
