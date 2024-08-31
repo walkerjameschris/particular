@@ -11,8 +11,8 @@
 #define GRAVITY 1000
 #define BOUND_RATIO 0.45
 #define THROTTLE 0.5
-#define SUBSTEPS 6
-#define N_GRID 25
+#define SUBSTEPS 8
+#define N_GRID 35
 
 int main() {
 
