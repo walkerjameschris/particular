@@ -20,7 +20,7 @@ int main() {
     sf::Clock clock;
 
     // Window adjustments
-    unsigned int rescale = DISPLAY * 2;
+    unsigned int rescale = DISPLAY * 1.75;
     window.setFramerateLimit(int(FRAME_RATE));
     window.setSize(sf::Vector2(rescale, rescale));
 
@@ -28,7 +28,7 @@ int main() {
     float gravity_x = 0.0;
     float gravity_y = GRAVITY;
     float dt = 1 / (float(FRAME_RATE) * float(SUBSTEPS));
-    int cycles;
+    int cycles = 0;
 
     // Particle container
     Particles particles = {
@@ -41,11 +41,8 @@ int main() {
     // Main simulation
     while (window.isOpen()) {
 
-        // Handle events and cycle counter
-        sf::Event event;
-        cycles += 1;
-
         // Handle exits
+        sf::Event event;
         while (window.pollEvent(event)) {
             if (event.type == sf::Event::Closed) {
                 window.close();
@@ -87,6 +84,7 @@ int main() {
             cycles = 0;
         }
 
+        cycles += 1;
         particles.render(window);
     }
 }
