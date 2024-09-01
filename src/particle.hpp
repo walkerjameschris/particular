@@ -5,9 +5,11 @@
 #include <unordered_map>
 
 struct Color {
-    int r = 255;
-    int b = 000;
-    int g = 000;
+    int r = 000;
+    int b = 255;
+    int g = 050;
+    int a = 150;
+    bool ascending = true;
 };
 
 struct Particles {
@@ -63,28 +65,22 @@ struct Particles {
     void color_gen() {
         // Moves the current color through RGB space
 
-        if (color.r == 255 && color.g <  255 && color.b == 000) {
+        if (color.ascending && color.g < 150) {
             color.g += 1;
         }
 
-        if (color.r >  000 && color.g == 255 && color.b == 000) {
-            color.r -= 1;
-        }
-
-        if (color.r == 000 && color.g == 255 && color.b <  255) {
-            color.b += 1;
-        }
-
-        if (color.r == 000 && color.g >  000 && color.b == 255) {
+        if (color.ascending && color.g == 150) {
+            color.ascending = false;
             color.g -= 1;
         }
 
-        if (color.r <  255 && color.g == 000 && color.b == 255) {
-            color.r += 1;
+        if (!color.ascending && color.g > 50) {
+            color.g -= 1;
         }
 
-        if (color.r == 255 && color.g == 000 && color.b >  000) {
-            color.b -= 1;
+        if (!color.ascending && color.g == 50) {
+            color.ascending = true;
+            color.g += 1;
         }
     }
 
@@ -208,14 +204,22 @@ struct Particles {
         // Rendering utility to display particles in color
 
         window.clear();
-        sf::CircleShape circle(radius);
+        sf::CircleShape circle(radius * 2);
         circle.setPointCount(32);
 
         for (int i = 0; i < x_pos.size(); i++) {
+
             float x = x_pos[i];
             float y = y_pos[i];
             circle.setPosition(x, y);
-            sf::Color particle_color(colors[i].r, colors[i].g, colors[i].b, 255);
+
+            sf::Color particle_color(
+                colors[i].r,
+                colors[i].g,
+                colors[i].b,
+                colors[i].a
+            );
+
             circle.setFillColor(particle_color);
             window.draw(circle);
         }
