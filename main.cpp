@@ -66,6 +66,7 @@ int main() {
             gravity_x = 0;
             gravity_y = gravity;
         }
+
         // New particle generation
         particles.generate();
 
