@@ -116,10 +116,7 @@ struct Particles {
         }
     }
 
-    void collide_inner(
-        int inner_id,
-        int outer_id
-    ) {
+    void collide_inner(int inner_id, int outer_id) {
         // High performance Verlet integrator which uses
         // a subspace grid to transform search space from
         // O(N^2) to approximately O(N) for particle
