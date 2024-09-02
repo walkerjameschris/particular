@@ -49,7 +49,9 @@ can also hold _I_ for realtime information about the simulation like FPS, etc.
 
 * `CMakeLists.txt`: A CMake file desined for cross-platform compilation
 * `main.cpp`: The driver file for the simulation with `SFML`
-* `src/particle.h`: The header file defining particle behavior
+* `src/particle.hpp`: The header file defining particle behavior
+* `src/hud.hpp`: The header file for the head's up display (HUD)
+* `font/jetbrains.tff`: The font for the HUD
 
 # Resources
 
