@@ -18,6 +18,7 @@ struct Particles {
     float n_grid;
     float display;
     float radius;
+    float max_shift;
 
     Color color;
 
@@ -88,11 +89,13 @@ struct Particles {
         // Generates a new particle and adds to collection state
 
         if (x_pos.size() < n_particle) {
+
             x_pos.emplace_back(1.5);
             y_pos.emplace_back(100.5);
             x_prv.emplace_back(0);
             y_prv.emplace_back(100);
             colors.emplace_back(color);
+
             color_gen();
         }
     }
@@ -101,8 +104,8 @@ struct Particles {
         // Clamps all particles within display region
 
         for (int i = 0; i < x_pos.size(); i++) {
-            x_pos[i] = clamp(x_pos[i], 0, display - radius);
-            y_pos[i] = clamp(y_pos[i], 0, display - radius);
+            x_pos[i] = clamp(x_pos[i], 0, display - radius * 2);
+            y_pos[i] = clamp(y_pos[i], 0, display - radius * 2);
         }
     }
 
@@ -156,10 +159,10 @@ struct Particles {
                     float x_div = x_chg / dist;
                     float y_div = y_chg / dist;
 
-                    x_pos[i] -= x_div * delta;
-                    y_pos[i] -= y_div * delta;
-                    x_pos[j] += x_div * delta;
-                    y_pos[j] += y_div * delta;
+                    x_pos[i] -= clamp(x_div * delta, -max_shift, max_shift);
+                    y_pos[i] -= clamp(y_div * delta, -max_shift, max_shift);
+                    x_pos[j] += clamp(x_div * delta, -max_shift, max_shift);
+                    y_pos[j] += clamp(y_div * delta, -max_shift, max_shift);
                 }
             }
         }
@@ -200,7 +203,6 @@ struct Particles {
     void render(sf::RenderWindow& window) {
         // Rendering utility to display particles in color
 
-        window.clear();
         sf::CircleShape circle(radius * 2);
         circle.setPointCount(32);
 
@@ -220,7 +222,5 @@ struct Particles {
             circle.setFillColor(particle_color);
             window.draw(circle);
         }
-        
-        window.display();
     }
 };

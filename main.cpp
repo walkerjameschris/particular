@@ -2,40 +2,47 @@
 #include <vector>
 #include <cmath>
 #include "src/particle.hpp"
+#include "src/hud.hpp"
 
 int main() {
 
     // Constants
-    const float display = 500;
-    const float n_particle = 2000;
+    const float display = 400;
+    const float n_particle = 2500;
     const float frame_rate = 60;
-    const float radius = 3;
-    const float substeps = 12;
-    const float n_grid = 24;
+    const float radius = 2;
+    const float substeps = 6;
+    const float ppc = 100;
     const float gravity = 1000;
+    const float max_shift = 0.2;
 
-    // Initialization
+    // SFML initialization
     sf::VideoMode window_scale(display, display);
-    sf::RenderWindow window(window_scale, "Verlet Particle Simulation");
+    sf::RenderWindow window(window_scale, "Verlet Simulation");
     sf::Clock clock;
 
-    // Window adjustments
-    unsigned int rescale = display * 1.75;
-    window.setFramerateLimit(int(frame_rate));
-    window.setSize(sf::Vector2(rescale, rescale));
+    // HUD initialization
+    HUD hud;
+    hud.init();
 
     // Dynamic parameters
     float gravity_x = 0.0;
     float gravity_y = gravity;
     float dt = 1 / (frame_rate * substeps);
-    int cycles = 0;
+    float n_grid = floor(3 * sqrt(pow(display / radius, 2) / ppc));
+
+    // Window adjustments
+    unsigned int rescale = display * 2;
+    window.setFramerateLimit(int(frame_rate));
+    window.setSize(sf::Vector2(rescale, rescale));
 
     // Particle container
     Particles particles = {
         n_particle,
         n_grid,
         display,
-        radius
+        radius,
+        max_shift
     };
 
     // Main simulation
@@ -78,17 +85,22 @@ int main() {
             particles.move(gravity_x, gravity_y, dt);
         }
 
-        // Prints FPS counter to terminal
-        if (cycles > frame_rate) {
-            float fps = frame_rate / clock.getElapsedTime().asSeconds();
-            int n = int(particles.x_pos.size());
-            printf("FPS: %3.1f Particles: %i\n", fps, n);
-            clock.restart();
-            cycles = 0;
-        }
+        // Clear display elements
+        window.clear();
 
-        // Render and count
+        // Handle HUD
+        hud.render(
+            window,
+            clock,
+            sf::Keyboard::isKeyPressed(sf::Keyboard::I),
+            gravity_x / gravity,
+            gravity_y / gravity,
+            particles.x_pos.size(),
+            n_grid
+        );
+
+        // Render and display
         particles.render(window);
-        cycles += 1;
+        window.display();
     }
 }
