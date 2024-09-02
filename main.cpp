@@ -96,6 +96,7 @@ int main() {
             gravity_x / gravity,
             gravity_y / gravity,
             particles.x_pos.size(),
+            n_particle,
             n_grid
         );
 

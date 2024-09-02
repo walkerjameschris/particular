@@ -25,9 +25,10 @@ struct HUD {
         sf::Clock& clock,
         bool keypress = true,
         int gravity_x = 0,
-        int gravity_y = 1000,
-        int n_particle = 500,
-        int n_grid = 10
+        int gravity_y = 0,
+        int current_particle = 0,
+        int n_particle = 0,
+        int n_grid = 0
     ) {
 
         int fps = 1 / clock.getElapsedTime().asSeconds();
@@ -35,17 +36,18 @@ struct HUD {
 
         if (keypress) {
 
-            std::string a = std::to_string(fps);
-            std::string b = std::to_string(n_particle);
-            std::string c = std::to_string(n_grid);
-            std::string d = std::to_string(gravity_x);
-            std::string e = std::to_string(gravity_y);
+            std::string fps_ch = std::to_string(fps);
+            std::string curr_chr = std::to_string(current_particle);
+            std::string part_ch = std::to_string(n_particle);
+            std::string grid_ch = std::to_string(n_grid);
+            std::string gx_ch = std::to_string(gravity_x);
+            std::string gy_ch = std::to_string(gravity_y);
 
             text.setString(
-                "FPS: " + a + "\n" +
-                "Particles: " + b + "\n" +
-                "Grid Cells: " + c + "x" + c + "\n" +
-                "Gravity: (" + d + ", " + e + ")"
+                "FPS: " + fps_ch + "\n" +
+                "Particles: " + curr_chr + " of " + part_ch + "\n" +
+                "Grid Cells: " + grid_ch + " by " + grid_ch + "\n" +
+                "Gravity: (" + gx_ch + ", " + gy_ch + ")"
             );
 
             window.draw(text);
