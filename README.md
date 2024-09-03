@@ -19,7 +19,7 @@ which is an x86 Linux machine, I can acheive good frame rates for about 5000
 particles. Without these algorithimic improvements, I could only handle around
 500 particles. I plan to add multithreading for better performance in the future!
 
- <img src="https://raw.githubusercontent.com/walkerjameschris/verlet-motion/main/img/particle_hud.png" width="400"> 
+ <img src="https://raw.githubusercontent.com/walkerjameschris/verlet-motion/main/img/particle_wave.png" width="400"> 
 
 # Build Instructions
 
