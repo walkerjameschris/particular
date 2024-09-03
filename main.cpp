@@ -88,7 +88,7 @@ int main() {
         hud.render(
             window,
             clock,
-            true, // sf::Keyboard::isKeyPressed(sf::Keyboard::I),
+            sf::Keyboard::isKeyPressed(sf::Keyboard::I),
             gravity_x / gravity,
             gravity_y / gravity,
             particles.x_pos.size(),
