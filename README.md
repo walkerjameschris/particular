@@ -1,4 +1,4 @@
-# verlet-motion
+# particular
 
 A particle simulator written in C++ using Verlet integration for collision and
 motion. Verlet integreation solves for particle collisions by repeatedly moving
@@ -19,7 +19,7 @@ which is an x86 Linux machine, I can acheive good frame rates for about 5000
 particles. Without these algorithimic improvements, I could only handle around
 500 particles. I plan to add multithreading for better performance in the future!
 
- <img src="https://raw.githubusercontent.com/walkerjameschris/verlet-motion/main/img/particle_ex.png" width="400"> 
+ <img src="https://raw.githubusercontent.com/walkerjameschris/verlet-motion/main/img/particle_hud.png" width="400"> 
 
 # Build Instructions
 

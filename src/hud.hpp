@@ -3,7 +3,7 @@
 
 struct HUD {
 
-    int font_size = 10;
+    int font_size = 16;
     int font_offset = 10;
 
     std::string font_path = "../font/jetbrains.ttf";

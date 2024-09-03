@@ -7,10 +7,10 @@
 int main() {
 
     // Constants
-    const float display = 400;
+    const float display = 800;
     const float n_particle = 2500;
     const float frame_rate = 60;
-    const float radius = 2;
+    const float radius = 4;
     const float substeps = 6;
     const float ppc = 100;
     const float gravity = 1000;
@@ -19,6 +19,7 @@ int main() {
     // SFML initialization
     sf::VideoMode window_scale(display, display);
     sf::RenderWindow window(window_scale, "Verlet Simulation");
+    window.setFramerateLimit(int(frame_rate));
     sf::Clock clock;
 
     // HUD initialization
@@ -30,11 +31,6 @@ int main() {
     float gravity_y = gravity;
     float dt = 1 / (frame_rate * substeps);
     float n_grid = floor(3 * sqrt(pow(display / radius, 2) / ppc));
-
-    // Window adjustments
-    unsigned int rescale = display * 2;
-    window.setFramerateLimit(int(frame_rate));
-    window.setSize(sf::Vector2(rescale, rescale));
 
     // Particle container
     Particles particles = {
@@ -92,7 +88,7 @@ int main() {
         hud.render(
             window,
             clock,
-            sf::Keyboard::isKeyPressed(sf::Keyboard::I),
+            true, // sf::Keyboard::isKeyPressed(sf::Keyboard::I),
             gravity_x / gravity,
             gravity_y / gravity,
             particles.x_pos.size(),
