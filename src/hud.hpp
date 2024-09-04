@@ -5,6 +5,8 @@ struct HUD {
 
     int font_size = 16;
     int font_offset = 10;
+    bool previous = false;
+    bool state = false;
 
     std::string font_path = "../font/jetbrains.ttf";
     sf::Color font_color = sf::Color::White;
@@ -20,10 +22,20 @@ struct HUD {
         text.setFillColor(font_color);
     }
 
+    void try_toggle(bool press) {
+        if (press && !previous) {
+            previous = true;
+            state = !state;
+        } else if (press) {
+            previous = true;
+        } else {
+            previous = false;
+        }
+    }
+
     void render(
         sf::RenderWindow& window,
         sf::Clock& clock,
-        bool keypress = true,
         int gravity_x = 0,
         int gravity_y = 0,
         int current_particle = 0,
@@ -34,7 +46,7 @@ struct HUD {
         int fps = 1 / clock.getElapsedTime().asSeconds();
         clock.restart();
 
-        if (keypress) {
+        if (state) {
 
             std::string fps_ch = std::to_string(fps);
             std::string curr_chr = std::to_string(current_particle);

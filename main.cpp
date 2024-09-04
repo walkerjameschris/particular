@@ -41,6 +41,8 @@ int main() {
         max_shift
     };
 
+    bool previous = false;
+
     // Main simulation
     while (window.isOpen()) {
 
@@ -84,11 +86,13 @@ int main() {
         // Clear display elements
         window.clear();
 
+        // Handle HUD press
+        hud.try_toggle(sf::Keyboard::isKeyPressed(sf::Keyboard::I));
+
         // Handle HUD
         hud.render(
             window,
             clock,
-            sf::Keyboard::isKeyPressed(sf::Keyboard::I),
             gravity_x / gravity,
             gravity_y / gravity,
             particles.x_pos.size(),
