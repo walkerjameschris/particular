@@ -3,7 +3,6 @@
 #include <vector>
 #include <cmath>
 #include <unordered_map>
-#include <thread>
 
 struct Color {
     int r = 000;
@@ -122,13 +121,7 @@ struct Particles {
         }
     }
 
-    static void collide_inner(
-        int inner_id,
-        int outer_id,
-        std::unordered_map<int, std::vector<int>> grid,
-        std::vector<float> x_pos,
-        std::vector<float> y_pos
-    ) {
+    void collide_inner(int inner_id, int outer_id) {
         // High performance Verlet integrator which uses
         // a subspace grid to transform search space from
         // O(N^2) to approximately O(N) for particle
@@ -168,67 +161,29 @@ struct Particles {
                     float x_div = x_chg / dist;
                     float y_div = y_chg / dist;
 
-                    x_pos[i] -= x_div * delta; // , -max_shift, max_shift);
-                    y_pos[i] -= y_div * delta; // , -max_shift, max_shift);
-                    x_pos[j] += x_div * delta; // , -max_shift, max_shift);
-                    y_pos[j] += y_div * delta; // , -max_shift, max_shift);
-                }
-            }
-        }
-    }
-
-    static void collide_thread(
-        int start_x,
-        int end_x,
-        int n_grid_y,
-        std::unordered_map<int, std::vector<int>> grid,
-        std::vector<float> x_pos,
-        std::vector<float> y_pos
-    ) {
-        // Iterates through the simulation space grid. This
-        // cycles through all grid cells and detects collision
-        // between the current cell and all neighboring cells.
-
-        for (int i = start_x; i < end_x; i++) {
-            for (int j = 0; j < n_grid_y; j++) {
-                for (int a = i - 1; a < (i + 1); a++) {
-                    for (int b = j - 1; b < (j + 1); b++) {
-                        collide_inner(
-                            id_raw(i, j),
-                            id_raw(a, b),
-                            grid,
-                            x_pos,
-                            y_pos
-                        );
-                    }
+                    x_pos[i] -= clamp(x_div * delta, -max_shift, max_shift);
+                    y_pos[i] -= clamp(y_div * delta, -max_shift, max_shift);
+                    x_pos[j] += clamp(x_div * delta, -max_shift, max_shift);
+                    y_pos[j] += clamp(y_div * delta, -max_shift, max_shift);
                 }
             }
         }
     }
 
     void collide_grid() {
+        // Iterates through the simulation space grid. This
+        // cycles through all grid cells and detects collision
+        // between the current cell and all neighboring cells.
 
-        int half_point = floor(n_grid_x / 2);
-
-        std::thread thread_1(
-            collide_thread,
-            0, half_point,
-            grid,
-            x_pos,
-            y_pos
-        );
-
-        std::thread thread_2(
-            collide_thread,
-            half_point,
-            n_grid_x,
-            grid,
-            x_pos,
-            y_pos
-        );
-
-        thread_1.join();
-        thread_2.join();
+        for (int i = 0; i < n_grid_x; i++) {
+            for (int j = 0; j < n_grid_y; j++) {
+                for (int a = i - 1; a < (i + 1); a++) {
+                    for (int b = j - 1; b < (j + 1); b++) {
+                        collide_inner(id_raw(i, j), id_raw(a, b));
+                    }
+                }
+            }
+        }
     }
 
     void move(float gravity_x, float gravity_y, float dt) {
