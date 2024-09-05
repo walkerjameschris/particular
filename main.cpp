@@ -27,6 +27,9 @@ int main() {
     float width = sqrt(ppc) * radius;
     int n_grid_x = ceil(display_x / width);
     int n_grid_y = ceil(display_y / width);
+    int wave_adj = 0;
+    int wave_ind = 0;
+    int wave_max = display_x * 0.2;
 
     // Particle container
     Particles particles = {
@@ -76,9 +79,12 @@ int main() {
             gravity_y = gravity;
         }
 
+        // Other user presses
         bool minus = sf::Keyboard::isKeyPressed(sf::Keyboard::Q);
         bool add = sf::Keyboard::isKeyPressed(sf::Keyboard::E);
+        bool space = sf::Keyboard::isKeyPressed(sf::Keyboard::Space);
 
+        // Adjust particle generation
         if (minus && n_particle >= (min_particle + particle_step)) {
             n_particle -= particle_step;
         } else if (add && n_particle <= (max_particle - particle_step)) {
@@ -87,7 +93,7 @@ int main() {
 
         // Substep simulation solver
         for (int i = 0; i < substeps; i++) {
-            particles.generate(n_particle);
+            particles.generate(n_particle, display_x);
             particles.impose_bounds();
             particles.assign_grid();
             particles.collide_grid();
@@ -113,7 +119,7 @@ int main() {
         );
 
         // Render and display
-        particles.render(window);
+        particles.render(window, sf::Keyboard::isKeyPressed(sf::Keyboard::V));
         window.display();
     }
 }

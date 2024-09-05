@@ -30,6 +30,7 @@ struct Particles {
     std::vector<float> x_prv;
     std::vector<float> y_prv;
     std::vector<Color> colors;
+    std::vector<float> velocities;
 
     std::unordered_map<int, std::vector<int>> grid;
 
@@ -87,18 +88,20 @@ struct Particles {
         }
     }
 
-    void generate(int n_particle) {
+    void generate(int n_particle, int display_x) {
         // Generates a new particle and adds to collection state
 
         if (x_pos.size() < n_particle) {
 
-            int start_x = float(display_x) * float(rand()) / float(RAND_MAX);
+            float uniform = float(rand()) / float(RAND_MAX);
+            float start_x = float(display_x) * uniform;
 
             x_pos.emplace_back(start_x);
             y_pos.emplace_back(0.5);
             x_prv.emplace_back(start_x);
             y_prv.emplace_back(0);
             colors.emplace_back(color);
+            velocities.emplace_back(0);
 
             color_gen();
         }
@@ -109,6 +112,7 @@ struct Particles {
             x_prv.pop_back();
             y_prv.pop_back();
             colors.pop_back();
+            velocities.pop_back();
         }
     }
 
@@ -209,10 +213,12 @@ struct Particles {
 
             x_pos[i] += x_chg + gravity_x * dt * dt;
             y_pos[i] += y_chg + gravity_y * dt * dt;
+
+            velocities[i] = pow(x_chg, 2) + pow(y_chg, 2);
         }
     }
 
-    void render(sf::RenderWindow& window) {
+    void render(sf::RenderWindow& window, bool velocity_mode) {
         // Rendering utility to display particles in color
 
         sf::CircleShape circle(radius * 2);
@@ -230,6 +236,15 @@ struct Particles {
                 colors[i].b,
                 colors[i].a
             );
+
+            if (velocity_mode) {
+
+                int velocity = int(clamp(velocities[i], 0, 10) * 25);
+
+                particle_color.r = velocity;
+                particle_color.g = 255 - velocity;
+                particle_color.b = 0;
+            } 
 
             circle.setFillColor(particle_color);
             window.draw(circle);

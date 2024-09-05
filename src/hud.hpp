@@ -59,14 +59,15 @@ struct HUD {
             std::string gy_ch = std::to_string(gravity_y);
             std::string wasd = "Control Gravity: WASD + Z\n";
             std::string add = "Add Particles: E\n";
-            std::string remove = "Remove Particles: Q";
+            std::string remove = "Remove Particles: Q\n";
+            std::string velocity = "V: Velocity Mode";
 
             text.setString(
                 "FPS: " + fps_ch + "\n" +
                 "Particles: " + curr_chr + " of " + part_ch + "\n" +
                 "Grid Cells: " + grid_ch_x + " by " + grid_ch_y + "\n" +
                 "Gravity: (" + gx_ch + ", " + gy_ch + ")\n" +
-                wasd + add + remove
+                wasd + add + remove + velocity
             );
 
             window.draw(text);
