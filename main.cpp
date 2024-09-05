@@ -7,36 +7,39 @@
 int main() {
 
     // Constants
-    const float display = 800;
-    const float n_particle = 2500;
-    const float frame_rate = 60;
-    const float radius = 4;
-    const float substeps = 6;
-    const float ppc = 100;
+    const int display_x = 1400;
+    const int display_y = 600;
+    const int n_particle = 5000;
+    const int frame_rate = 60;
+    const int radius = 4;
+    const int substeps = 4;
+    const int ppc = 10;
     const float gravity = 1000;
     const float max_shift = 0.2;
 
-    // SFML initialization
-    sf::VideoMode window_scale(display, display);
+    // Initialization
+    sf::VideoMode window_scale(display_x, display_y);
     sf::RenderWindow window(window_scale, "Verlet Simulation");
     window.setFramerateLimit(int(frame_rate));
     sf::Clock clock;
-
-    // HUD initialization
     HUD hud;
-    hud.init();
 
     // Dynamic parameters
     float gravity_x = 0.0;
     float gravity_y = gravity;
-    float dt = 1 / (frame_rate * substeps);
-    float n_grid = floor(3 * sqrt(pow(display / radius, 2) / ppc));
+    float dt = 1 / float(frame_rate * substeps);
+    float width = sqrt(ppc) * radius;
+    int n_grid_x = ceil(display_x / width);
+    int n_grid_y = ceil(display_y / width);
 
     // Particle container
     Particles particles = {
         n_particle,
-        n_grid,
-        display,
+        n_grid_x,
+        n_grid_y,
+        display_x,
+        display_y,
+        width,
         radius,
         max_shift
     };
@@ -72,11 +75,9 @@ int main() {
             gravity_y = gravity;
         }
 
-        // New particle generation
-        particles.generate();
-
         // Substep simulation solver
         for (int i = 0; i < substeps; i++) {
+            particles.generate();
             particles.impose_bounds();
             particles.assign_grid();
             particles.collide_grid();
@@ -97,7 +98,8 @@ int main() {
             gravity_y / gravity,
             particles.x_pos.size(),
             n_particle,
-            n_grid
+            n_grid_x,
+            n_grid_y
         );
 
         // Render and display

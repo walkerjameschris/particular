@@ -1,3 +1,4 @@
+#pragma once
 #include <SFML/Graphics.hpp>
 #include <string>
 
@@ -14,7 +15,7 @@ struct HUD {
     sf::Font font;
     sf::Text text;
 
-    void init() {
+    HUD() {
         font.loadFromFile(font_path);
         text.setFont(font);
         text.setCharacterSize(font_size);
@@ -40,7 +41,8 @@ struct HUD {
         int gravity_y = 0,
         int current_particle = 0,
         int n_particle = 0,
-        int n_grid = 0
+        int n_grid_x = 0,
+        int n_grid_y = 0
     ) {
 
         int fps = 1 / clock.getElapsedTime().asSeconds();
@@ -51,14 +53,15 @@ struct HUD {
             std::string fps_ch = std::to_string(fps);
             std::string curr_chr = std::to_string(current_particle);
             std::string part_ch = std::to_string(n_particle);
-            std::string grid_ch = std::to_string(n_grid);
+            std::string grid_ch_x = std::to_string(n_grid_x);
+            std::string grid_ch_y = std::to_string(n_grid_y);
             std::string gx_ch = std::to_string(gravity_x);
             std::string gy_ch = std::to_string(gravity_y);
 
             text.setString(
                 "FPS: " + fps_ch + "\n" +
                 "Particles: " + curr_chr + " of " + part_ch + "\n" +
-                "Grid Cells: " + grid_ch + " by " + grid_ch + "\n" +
+                "Grid Cells: " + grid_ch_x + " by " + grid_ch_y + "\n" +
                 "Gravity: (" + gx_ch + ", " + gy_ch + ")"
             );
 

@@ -3,6 +3,7 @@
 #include <vector>
 #include <cmath>
 #include <unordered_map>
+#include <thread>
 
 struct Color {
     int r = 000;
@@ -14,9 +15,12 @@ struct Color {
 
 struct Particles {
 
-    float n_particle;
-    float n_grid;
-    float display;
+    int n_particle;
+    int n_grid_x;
+    int n_grid_y;
+    int display_x;
+    int display_y;
+    float width;
     float radius;
     float max_shift;
 
@@ -55,7 +59,6 @@ struct Particles {
     int id(float x, float y) {
         // Assigns particle to a grid key
 
-        float width = display / n_grid;
         int x_id = floor(x / width);
         int y_id = floor(y / width);
         return id_raw(x_id, y_id);
@@ -104,8 +107,8 @@ struct Particles {
         // Clamps all particles within display region
 
         for (int i = 0; i < x_pos.size(); i++) {
-            x_pos[i] = clamp(x_pos[i], 0, display - radius * 2);
-            y_pos[i] = clamp(y_pos[i], 0, display - radius * 2);
+            x_pos[i] = clamp(x_pos[i], 0, display_x - radius * 2);
+            y_pos[i] = clamp(y_pos[i], 0, display_y - radius * 2);
         }
     }
 
@@ -119,7 +122,13 @@ struct Particles {
         }
     }
 
-    void collide_inner(int inner_id, int outer_id) {
+    static void collide_inner(
+        int inner_id,
+        int outer_id,
+        std::unordered_map<int, std::vector<int>> grid,
+        std::vector<float> x_pos,
+        std::vector<float> y_pos
+    ) {
         // High performance Verlet integrator which uses
         // a subspace grid to transform search space from
         // O(N^2) to approximately O(N) for particle
@@ -159,29 +168,67 @@ struct Particles {
                     float x_div = x_chg / dist;
                     float y_div = y_chg / dist;
 
-                    x_pos[i] -= clamp(x_div * delta, -max_shift, max_shift);
-                    y_pos[i] -= clamp(y_div * delta, -max_shift, max_shift);
-                    x_pos[j] += clamp(x_div * delta, -max_shift, max_shift);
-                    y_pos[j] += clamp(y_div * delta, -max_shift, max_shift);
+                    x_pos[i] -= x_div * delta; // , -max_shift, max_shift);
+                    y_pos[i] -= y_div * delta; // , -max_shift, max_shift);
+                    x_pos[j] += x_div * delta; // , -max_shift, max_shift);
+                    y_pos[j] += y_div * delta; // , -max_shift, max_shift);
+                }
+            }
+        }
+    }
+
+    static void collide_thread(
+        int start_x,
+        int end_x,
+        int n_grid_y,
+        std::unordered_map<int, std::vector<int>> grid,
+        std::vector<float> x_pos,
+        std::vector<float> y_pos
+    ) {
+        // Iterates through the simulation space grid. This
+        // cycles through all grid cells and detects collision
+        // between the current cell and all neighboring cells.
+
+        for (int i = start_x; i < end_x; i++) {
+            for (int j = 0; j < n_grid_y; j++) {
+                for (int a = i - 1; a < (i + 1); a++) {
+                    for (int b = j - 1; b < (j + 1); b++) {
+                        collide_inner(
+                            id_raw(i, j),
+                            id_raw(a, b),
+                            grid,
+                            x_pos,
+                            y_pos
+                        );
+                    }
                 }
             }
         }
     }
 
     void collide_grid() {
-        // Iterates through the simulation space grid. This
-        // cycles through all grid cells and detects collision
-        // between the current cell and all neighboring cells.
 
-        for (int i = 0; i < n_grid; i++) {
-            for (int j = 0; j < n_grid; j++) {
-                for (int a = i - 1; a < (i + 1); a++) {
-                    for (int b = j - 1; b < (j + 1); b++) {
-                        collide_inner(id_raw(i, j), id_raw(a, b));
-                    }
-                }
-            }
-        }
+        int half_point = floor(n_grid_x / 2);
+
+        std::thread thread_1(
+            collide_thread,
+            0, half_point,
+            grid,
+            x_pos,
+            y_pos
+        );
+
+        std::thread thread_2(
+            collide_thread,
+            half_point,
+            n_grid_x,
+            grid,
+            x_pos,
+            y_pos
+        );
+
+        thread_1.join();
+        thread_2.join();
     }
 
     void move(float gravity_x, float gravity_y, float dt) {
