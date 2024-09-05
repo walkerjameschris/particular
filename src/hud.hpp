@@ -57,12 +57,16 @@ struct HUD {
             std::string grid_ch_y = std::to_string(n_grid_y);
             std::string gx_ch = std::to_string(gravity_x);
             std::string gy_ch = std::to_string(gravity_y);
+            std::string wasd = "Control Gravity: WASD + Z\n";
+            std::string add = "Add Particles: E\n";
+            std::string remove = "Remove Particles: Q";
 
             text.setString(
                 "FPS: " + fps_ch + "\n" +
                 "Particles: " + curr_chr + " of " + part_ch + "\n" +
                 "Grid Cells: " + grid_ch_x + " by " + grid_ch_y + "\n" +
-                "Gravity: (" + gx_ch + ", " + gy_ch + ")"
+                "Gravity: (" + gx_ch + ", " + gy_ch + ")\n" +
+                wasd + add + remove
             );
 
             window.draw(text);

@@ -87,18 +87,28 @@ struct Particles {
         }
     }
 
-    void generate() {
+    void generate(int n_particle) {
         // Generates a new particle and adds to collection state
 
         if (x_pos.size() < n_particle) {
 
-            x_pos.emplace_back(1.5);
-            y_pos.emplace_back(100.5);
-            x_prv.emplace_back(0);
-            y_prv.emplace_back(100);
+            int start_x = float(display_x) * float(rand()) / float(RAND_MAX);
+
+            x_pos.emplace_back(start_x);
+            y_pos.emplace_back(0.5);
+            x_prv.emplace_back(start_x);
+            y_prv.emplace_back(0);
             colors.emplace_back(color);
 
             color_gen();
+        }
+
+        if ((x_pos.size() > n_particle) && (x_pos.size() > 0)) {
+            x_pos.pop_back();
+            y_pos.pop_back();
+            x_prv.pop_back();
+            y_prv.pop_back();
+            colors.pop_back();
         }
     }
 

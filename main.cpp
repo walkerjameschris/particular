@@ -7,24 +7,20 @@
 int main() {
 
     // Constants
+    const int min_particle = 1;
+    const int max_particle = 5000;
+    const int particle_step = 10;
     const int display_x = 1400;
     const int display_y = 600;
-    const int n_particle = 5000;
     const int frame_rate = 60;
     const int radius = 4;
-    const int substeps = 4;
-    const int ppc = 10;
+    const int substeps = 3;
+    const int ppc = 8;
     const float gravity = 1000;
     const float max_shift = 0.2;
 
-    // Initialization
-    sf::VideoMode window_scale(display_x, display_y);
-    sf::RenderWindow window(window_scale, "Verlet Simulation");
-    window.setFramerateLimit(int(frame_rate));
-    sf::Clock clock;
-    HUD hud;
-
     // Dynamic parameters
+    int n_particle = 5000;
     float gravity_x = 0.0;
     float gravity_y = gravity;
     float dt = 1 / float(frame_rate * substeps);
@@ -44,7 +40,12 @@ int main() {
         max_shift
     };
 
-    bool previous = false;
+    // Initialization
+    sf::VideoMode window_scale(display_x, display_y);
+    sf::RenderWindow window(window_scale, "Verlet Simulation");
+    window.setFramerateLimit(int(frame_rate));
+    sf::Clock clock;
+    HUD hud;
 
     // Main simulation
     while (window.isOpen()) {
@@ -75,9 +76,18 @@ int main() {
             gravity_y = gravity;
         }
 
+        bool minus = sf::Keyboard::isKeyPressed(sf::Keyboard::Q);
+        bool add = sf::Keyboard::isKeyPressed(sf::Keyboard::E);
+
+        if (minus && n_particle >= (min_particle + particle_step)) {
+            n_particle -= particle_step;
+        } else if (add && n_particle <= (max_particle - particle_step)) {
+            n_particle += particle_step;
+        }
+
         // Substep simulation solver
         for (int i = 0; i < substeps; i++) {
-            particles.generate();
+            particles.generate(n_particle);
             particles.impose_bounds();
             particles.assign_grid();
             particles.collide_grid();
