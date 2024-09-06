@@ -1,5 +1,6 @@
 #pragma once
 #include <SFML/Graphics.hpp>
+#include "hud.hpp"
 #include <vector>
 #include <cmath>
 #include <unordered_map>
@@ -33,6 +34,8 @@ struct Particles {
     std::vector<float> velocities;
 
     std::unordered_map<int, std::vector<int>> grid;
+
+    Button show_state;
 
     //// Particle Utilities ////
 
@@ -94,7 +97,7 @@ struct Particles {
         if (x_pos.size() < n_particle) {
 
             float uniform = float(rand()) / float(RAND_MAX);
-            float start_x = float(display_x) * uniform;
+            float start_x = float(display_x) * uniform * 0.98;
 
             x_pos.emplace_back(start_x);
             y_pos.emplace_back(0.5);
@@ -218,11 +221,12 @@ struct Particles {
         }
     }
 
-    void render(sf::RenderWindow& window, bool velocity_mode) {
+    void render(sf::RenderWindow& window, bool press) {
         // Rendering utility to display particles in color
 
         sf::CircleShape circle(radius * 2);
         circle.setPointCount(32);
+        show_state.toggle(press);
 
         for (int i = 0; i < x_pos.size(); i++) {
 
@@ -237,10 +241,8 @@ struct Particles {
                 colors[i].a
             );
 
-            if (velocity_mode) {
-
+            if (show_state.state) {
                 int velocity = int(clamp(velocities[i], 0, 10) * 25);
-
                 particle_color.r = velocity;
                 particle_color.g = 255 - velocity;
                 particle_color.b = 0;

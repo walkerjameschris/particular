@@ -10,26 +10,23 @@ int main() {
     const int min_particle = 1;
     const int max_particle = 5000;
     const int particle_step = 10;
-    const int display_x = 1400;
+    const int display_x = 1000;
     const int display_y = 600;
     const int frame_rate = 60;
-    const int radius = 4;
-    const int substeps = 3;
-    const int ppc = 8;
+    const int radius = 5;
+    const int substeps = 4;
+    const int ppc = 10;
+    const float width = sqrt(ppc) * radius;
+    const int n_grid_x = ceil(display_x / width);
+    const int n_grid_y = ceil(display_y / width);
     const float gravity = 1000;
-    const float max_shift = 0.2;
+    const float max_shift = 0.20;
+    const float dt = 1 / float(frame_rate * substeps);
 
     // Dynamic parameters
-    int n_particle = 5000;
+    int n_particle = max_particle / 2;
     float gravity_x = 0.0;
     float gravity_y = gravity;
-    float dt = 1 / float(frame_rate * substeps);
-    float width = sqrt(ppc) * radius;
-    int n_grid_x = ceil(display_x / width);
-    int n_grid_y = ceil(display_y / width);
-    int wave_adj = 0;
-    int wave_ind = 0;
-    int wave_max = display_x * 0.2;
 
     // Particle container
     Particles particles = {
@@ -103,9 +100,6 @@ int main() {
         // Clear display elements
         window.clear();
 
-        // Handle HUD press
-        hud.try_toggle(sf::Keyboard::isKeyPressed(sf::Keyboard::I));
-
         // Handle HUD
         hud.render(
             window,
@@ -115,7 +109,8 @@ int main() {
             particles.x_pos.size(),
             n_particle,
             n_grid_x,
-            n_grid_y
+            n_grid_y,
+            sf::Keyboard::isKeyPressed(sf::Keyboard::I)
         );
 
         // Render and display
