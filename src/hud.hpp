@@ -51,7 +51,9 @@ struct HUD {
         int n_particle = 0,
         int n_grid_x = 0,
         int n_grid_y = 0,
-        bool press = false
+        bool press = false,
+        bool center = false,
+        bool explode = false
     ) {
 
         show_state.toggle(press);
@@ -72,15 +74,20 @@ struct HUD {
             std::string wasd = "Gravity: W, A, S, D, Z\n";
             std::string add = "Add Particles: E\n";
             std::string remove = "Remove Particles: Q\n";
-            std::string velocity = "Toggle Velocities: V";
+            std::string velocity = "Toggle Velocities: V\n";
+            std::string dyn_cntr = "Center/Explode: C, X\n";
+
+            if (center || explode) {
+                gx_ch = "Dynamic";
+                gy_ch = "Dynamic";
+            }
 
             text.setString(
-                "-- Statistics --\nFPS: " + fps_ch + "\n" +
+                "FPS: " + fps_ch + "\n" +
                 "Particles: " + curr_chr + " of " + part_ch + "\n" +
                 "Grid Cells: " + grid_ch + " = " + grid_ch_x + " x " +
                 grid_ch_y + "\n" + "Gravity: (" + gx_ch + ", " + gy_ch +
-                ")\n\n" + "-- Controls --\n" +
-                wasd + add + remove + velocity
+                ")\n\n" + wasd + add + remove + velocity + dyn_cntr
             );
 
             window.draw(text);

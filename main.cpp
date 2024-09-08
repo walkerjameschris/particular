@@ -11,7 +11,7 @@ int main() {
     const int max_particle = 5000;
     const int particle_step = 10;
     const int display_x = 1000;
-    const int display_y = 600;
+    const int display_y = 1000;
     const int frame_rate = 60;
     const int radius = 5;
     const int substeps = 4;
@@ -37,7 +37,8 @@ int main() {
         display_y,
         width,
         radius,
-        max_shift
+        max_shift,
+        gravity
     };
 
     // Initialization
@@ -80,6 +81,9 @@ int main() {
         bool minus = sf::Keyboard::isKeyPressed(sf::Keyboard::Q);
         bool add = sf::Keyboard::isKeyPressed(sf::Keyboard::E);
         bool space = sf::Keyboard::isKeyPressed(sf::Keyboard::Space);
+        bool center = sf::Keyboard::isKeyPressed(sf::Keyboard::C);
+        bool explode = sf::Keyboard::isKeyPressed(sf::Keyboard::X);
+        bool info = sf::Keyboard::isKeyPressed(sf::Keyboard::I);
 
         // Adjust particle generation
         if (minus && n_particle >= (min_particle + particle_step)) {
@@ -94,7 +98,7 @@ int main() {
             particles.impose_bounds();
             particles.assign_grid();
             particles.collide_grid();
-            particles.move(gravity_x, gravity_y, dt);
+            particles.move(gravity_x, gravity_y, dt, center, explode);
         }
 
         // Clear display elements
@@ -110,7 +114,9 @@ int main() {
             n_particle,
             n_grid_x,
             n_grid_y,
-            sf::Keyboard::isKeyPressed(sf::Keyboard::I)
+            info,
+            center,
+            explode
         );
 
         // Render and display

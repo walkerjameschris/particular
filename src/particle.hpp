@@ -23,6 +23,7 @@ struct Particles {
     float width;
     float radius;
     float max_shift;
+    float gravity;
 
     Color color;
 
@@ -150,6 +151,7 @@ struct Particles {
         std::vector<int>& inner = grid[inner_id];
         std::vector<int>& outer = grid[outer_id];
         bool same_cell = inner_id == outer_id;
+
         int start = 0;
 
         if (inner.size() == 0 || outer.size() == 0) {
@@ -203,7 +205,13 @@ struct Particles {
         }
     }
 
-    void move(float gravity_x, float gravity_y, float dt) {
+    void move(
+        float gravity_x,
+        float gravity_y,
+        float dt,
+        bool center,
+        bool explode
+    ) {
         // Moves particles with dynamic gravitational force
 
         for (int i = 0; i < x_pos.size(); i++) {
@@ -214,8 +222,21 @@ struct Particles {
             x_prv[i] = x_pos[i];
             y_prv[i] = y_pos[i];
 
-            x_pos[i] += x_chg + gravity_x * dt * dt;
-            y_pos[i] += y_chg + gravity_y * dt * dt;
+            float grv_x = gravity_x;
+            float grv_y = gravity_y;
+
+            if (center || explode) {
+                grv_x = gravity * 2 * ((x_pos[i] / display_x) - 0.5);
+                grv_y = gravity * 2 * ((y_pos[i] / display_y) - 0.5);
+            }
+
+            if (center) {
+                grv_x *= -1;
+                grv_y *= -1;
+            }
+
+            x_pos[i] += x_chg + grv_x * dt * dt;
+            y_pos[i] += y_chg + grv_y * dt * dt;
 
             velocities[i] = pow(x_chg, 2) + pow(y_chg, 2);
         }
