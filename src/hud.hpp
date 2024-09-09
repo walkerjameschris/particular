@@ -1,6 +1,7 @@
 #pragma once
 #include <SFML/Graphics.hpp>
 #include <string>
+#include <fmt/core.h>
 
 struct Button {
 
@@ -47,8 +48,8 @@ struct HUD {
         sf::Clock& clock,
         int gravity_x = 0,
         int gravity_y = 0,
-        int current_particle = 0,
-        int n_particle = 0,
+        int particle = 0,
+        int particle_max = 0,
         int n_grid_x = 0,
         int n_grid_y = 0,
         bool press = false,
@@ -63,33 +64,35 @@ struct HUD {
 
         if (show_state.state) {
 
-            std::string fps_ch = std::to_string(fps);
-            std::string curr_chr = std::to_string(current_particle);
-            std::string part_ch = std::to_string(n_particle);
-            std::string grid_ch_x = std::to_string(n_grid_x);
-            std::string grid_ch_y = std::to_string(n_grid_y);
-            std::string grid_ch = std::to_string(n_grid_x * n_grid_y);
+            std::string starter = "";
             std::string gx_ch = std::to_string(gravity_x);
             std::string gy_ch = std::to_string(gravity_y);
-            std::string wasd = "Gravity: W, A, S, D, Z\n";
-            std::string add = "Add Particles: E\n";
-            std::string remove = "Remove Particles: Q\n";
-            std::string velocity = "Toggle Velocities: V\n";
-            std::string dyn_cntr = "Center/Explode: C, X\n";
 
             if (center || explode) {
                 gx_ch = "Dynamic";
                 gy_ch = "Dynamic";
             }
 
-            text.setString(
-                "FPS: " + fps_ch + "\n" +
-                "Particles: " + curr_chr + " of " + part_ch + "\n" +
-                "Grid Cells: " + grid_ch + " = " + grid_ch_x + " x " +
-                grid_ch_y + "\n" + "Gravity: (" + gx_ch + ", " + gy_ch +
-                ")\n\n" + wasd + add + remove + velocity + dyn_cntr
+            std::string message = fmt::format(
+                starter +
+                "FPS: {}\n" +
+                "Particles: {} of {}\n" +
+                "Grid Cells: {} by {}\n" +
+                "Gravity: ({}, {})\n\n" +
+                "Gravity: W, A, S, D, Z, X, C\n" +
+                "Add Particles: E\n" +
+                "Remove Particles: Q\n" +
+                "Toggle Velocity View: V",
+                fps,
+                particle,
+                particle_max,
+                n_grid_x,
+                n_grid_y,
+                gx_ch,
+                gy_ch
             );
 
+            text.setString(message);
             window.draw(text);
         }
     }

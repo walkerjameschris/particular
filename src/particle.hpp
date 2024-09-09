@@ -4,6 +4,7 @@
 #include <vector>
 #include <cmath>
 #include <unordered_map>
+#include <unordered_set>
 
 struct Color {
     int r = 000;
@@ -35,6 +36,8 @@ struct Particles {
     std::vector<float> velocities;
 
     std::unordered_map<int, std::vector<int>> grid;
+    std::unordered_set<int> x_valid;
+    std::unordered_set<int> y_valid;
 
     Button show_state;
 
@@ -60,11 +63,17 @@ struct Particles {
         return x * 73856093 ^ y * 19349663;
     }
 
+    int id_div(float x) {
+        // Raw division to int
+
+        return floor(x / width);
+    }
+
     int id(float x, float y) {
         // Assigns particle to a grid key
 
-        int x_id = floor(x / width);
-        int y_id = floor(y / width);
+        int x_id = id_div(x);
+        int y_id = id_div(y);
         return id_raw(x_id, y_id);
     }
 
@@ -133,9 +142,13 @@ struct Particles {
         // Assigns all points to the simulation subspace grid
 
         grid.clear();
+        x_valid.clear();
+        y_valid.clear();
 
         for (int i = 0; i < x_pos.size(); i++) {
             grid[id(x_pos[i], y_pos[i])].emplace_back(i);
+            x_valid.insert(id_div(x_pos[i]));
+            y_valid.insert(id_div(y_pos[i]));
         }
     }
 
@@ -194,8 +207,8 @@ struct Particles {
         // cycles through all grid cells and detects collision
         // between the current cell and all neighboring cells.
 
-        for (int i = 0; i < n_grid_x; i++) {
-            for (int j = 0; j < n_grid_y; j++) {
+        for (int i : x_valid) {
+            for (int j : y_valid) {
                 for (int a = i - 1; a < (i + 1); a++) {
                     for (int b = j - 1; b < (j + 1); b++) {
                         collide_inner(id_raw(i, j), id_raw(a, b));
@@ -228,6 +241,11 @@ struct Particles {
             if (center || explode) {
                 grv_x = gravity * 2 * ((x_pos[i] / display_x) - 0.5);
                 grv_y = gravity * 2 * ((y_pos[i] / display_y) - 0.5);
+            }
+
+            if (explode) {
+                grv_x *= 5;
+                grv_y *= 5;
             }
 
             if (center) {

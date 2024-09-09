@@ -11,9 +11,9 @@ int main() {
     const int max_particle = 5000;
     const int particle_step = 10;
     const int display_x = 1000;
-    const int display_y = 1000;
+    const int display_y = 500;
     const int frame_rate = 60;
-    const int radius = 5;
+    const int radius = 3;
     const int substeps = 4;
     const int ppc = 10;
     const float width = sqrt(ppc) * radius;
