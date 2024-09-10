@@ -6,14 +6,13 @@
 
 int main() {
 
-    // Constants
     const int min_particle = 1;
     const int max_particle = 5000;
     const int particle_step = 10;
-    const int display_x = 1000;
-    const int display_y = 500;
+    const int display_x = 1280;
+    const int display_y = 720;
     const int frame_rate = 60;
-    const int radius = 3;
+    const int radius = 6;
     const int substeps = 4;
     const int ppc = 10;
     const float width = sqrt(ppc) * radius;
@@ -23,12 +22,12 @@ int main() {
     const float max_shift = 0.20;
     const float dt = 1 / float(frame_rate * substeps);
 
-    // Dynamic parameters
     int n_particle = max_particle / 2;
     float gravity_x = 0.0;
     float gravity_y = gravity;
+    bool center = false;
+    bool explode = false;
 
-    // Particle container
     Particles particles = {
         n_particle,
         n_grid_x,
@@ -41,17 +40,14 @@ int main() {
         gravity
     };
 
-    // Initialization
     sf::VideoMode window_scale(display_x, display_y);
     sf::RenderWindow window(window_scale, "Verlet Simulation");
     window.setFramerateLimit(int(frame_rate));
     sf::Clock clock;
     HUD hud;
 
-    // Main simulation
     while (window.isOpen()) {
 
-        // Handle exits
         sf::Event event;
         while (window.pollEvent(event)) {
             if (event.type == sf::Event::Closed) {
@@ -59,7 +55,6 @@ int main() {
             }
         }
 
-        // User adjusted gravity
         if (sf::Keyboard::isKeyPressed(sf::Keyboard::W)) {
             gravity_x = 0;
             gravity_y = -gravity;
@@ -77,22 +72,28 @@ int main() {
             gravity_y = gravity;
         }
 
-        // Other user presses
+        if (sf::Keyboard::isKeyPressed(sf::Keyboard::C)) {
+            center = true;
+            explode = false;
+        } else if (sf::Keyboard::isKeyPressed(sf::Keyboard::X)) {
+            center = false;
+            explode = true;
+        } else {
+            center = false;
+            explode = false;
+        }
+
         bool minus = sf::Keyboard::isKeyPressed(sf::Keyboard::Q);
         bool add = sf::Keyboard::isKeyPressed(sf::Keyboard::E);
-        bool space = sf::Keyboard::isKeyPressed(sf::Keyboard::Space);
-        bool center = sf::Keyboard::isKeyPressed(sf::Keyboard::C);
-        bool explode = sf::Keyboard::isKeyPressed(sf::Keyboard::X);
         bool info = sf::Keyboard::isKeyPressed(sf::Keyboard::I);
+        bool velocity = sf::Keyboard::isKeyPressed(sf::Keyboard::V);
 
-        // Adjust particle generation
         if (minus && n_particle >= (min_particle + particle_step)) {
             n_particle -= particle_step;
         } else if (add && n_particle <= (max_particle - particle_step)) {
             n_particle += particle_step;
         }
 
-        // Substep simulation solver
         for (int i = 0; i < substeps; i++) {
             particles.generate(n_particle, display_x);
             particles.impose_bounds();
@@ -101,10 +102,8 @@ int main() {
             particles.move(gravity_x, gravity_y, dt, center, explode);
         }
 
-        // Clear display elements
         window.clear();
 
-        // Handle HUD
         hud.render(
             window,
             clock,
@@ -119,8 +118,7 @@ int main() {
             explode
         );
 
-        // Render and display
-        particles.render(window, sf::Keyboard::isKeyPressed(sf::Keyboard::V));
+        particles.render(window, velocity);
         window.display();
     }
 }

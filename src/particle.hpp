@@ -41,10 +41,7 @@ struct Particles {
 
     Button show_state;
 
-    //// Particle Utilities ////
-
     float clamp(float x, float min, float max) {
-        // Bounds a float between limits
     
         if (x > max) {
             return max;
@@ -58,29 +55,20 @@ struct Particles {
     }
 
     int id_raw(int x, int y) {
-        // Hashing function to create grid keys
-
         return x * 73856093 ^ y * 19349663;
     }
 
     int id_div(float x) {
-        // Raw division to int
-
         return floor(x / width);
     }
 
     int id(float x, float y) {
-        // Assigns particle to a grid key
-
         int x_id = id_div(x);
         int y_id = id_div(y);
         return id_raw(x_id, y_id);
     }
 
-    //// Stateful Functions ////
-
     void color_gen() {
-        // Moves the current color through RGB space
 
         if (color.ascending && color.g < 150) {
             color.g += 1;
@@ -102,7 +90,6 @@ struct Particles {
     }
 
     void generate(int n_particle, int display_x) {
-        // Generates a new particle and adds to collection state
 
         if (x_pos.size() < n_particle) {
 
@@ -130,7 +117,6 @@ struct Particles {
     }
 
     void impose_bounds() {
-        // Clamps all particles within display region
 
         for (int i = 0; i < x_pos.size(); i++) {
             x_pos[i] = clamp(x_pos[i], 0, display_x - radius * 2);
@@ -139,7 +125,6 @@ struct Particles {
     }
 
     void assign_grid() {
-        // Assigns all points to the simulation subspace grid
 
         grid.clear();
         x_valid.clear();
@@ -184,11 +169,10 @@ struct Particles {
 
                 float x_chg = x_pos[i] - x_pos[j];
                 float y_chg = y_pos[i] - y_pos[j];
-                float dist_sqrd = x_chg * x_chg + y_chg * y_chg;
+                float dist = sqrt(x_chg * x_chg + y_chg * y_chg);
 
-                if (dist_sqrd < (radius * 2) * (radius * 2)) {
+                if ((dist < (radius * 2)) && (dist > 0)) {
 
-                    float dist = sqrt(dist_sqrd);
                     float delta = 0.5 * (dist - (radius * 2));
                     float x_div = x_chg / dist;
                     float y_div = y_chg / dist;
@@ -225,7 +209,6 @@ struct Particles {
         bool center,
         bool explode
     ) {
-        // Moves particles with dynamic gravitational force
 
         for (int i = 0; i < x_pos.size(); i++) {
 
@@ -239,13 +222,8 @@ struct Particles {
             float grv_y = gravity_y;
 
             if (center || explode) {
-                grv_x = gravity * 2 * ((x_pos[i] / display_x) - 0.5);
-                grv_y = gravity * 2 * ((y_pos[i] / display_y) - 0.5);
-            }
-
-            if (explode) {
-                grv_x *= 5;
-                grv_y *= 5;
+                grv_x = gravity * 10 * ((x_pos[i] / display_x) - 0.5);
+                grv_y = gravity * 10 * ((y_pos[i] / display_y) - 0.5);
             }
 
             if (center) {
@@ -261,9 +239,8 @@ struct Particles {
     }
 
     void render(sf::RenderWindow& window, bool press) {
-        // Rendering utility to display particles in color
 
-        sf::CircleShape circle(radius * 2);
+        sf::CircleShape circle(radius * 1.5);
         circle.setPointCount(32);
         show_state.toggle(press);
 

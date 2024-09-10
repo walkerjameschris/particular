@@ -1,7 +1,6 @@
 #pragma once
 #include <SFML/Graphics.hpp>
 #include <string>
-#include <fmt/core.h>
 
 struct Button {
 
@@ -64,35 +63,27 @@ struct HUD {
 
         if (show_state.state) {
 
-            std::string starter = "";
             std::string gx_ch = std::to_string(gravity_x);
             std::string gy_ch = std::to_string(gravity_y);
+            std::string grv_msg = "(" + gx_ch + ", " + gy_ch + ")";
 
             if (center || explode) {
-                gx_ch = "Dynamic";
-                gy_ch = "Dynamic";
+                grv_msg = "Dynamic";
             }
 
-            std::string message = fmt::format(
-                starter +
-                "FPS: {}\n" +
-                "Particles: {} of {}\n" +
-                "Grid Cells: {} by {}\n" +
-                "Gravity: ({}, {})\n\n" +
-                "Gravity: W, A, S, D, Z, X, C\n" +
+            text.setString(
+                "FPS: " + std::to_string(fps) + "\n" +
+                "Particles: " + std::to_string(particle) +
+                " of " + std::to_string(particle_max) + "\n" +
+                "Grid Cells: " + std::to_string(n_grid_x) +
+                " by " + std::to_string(n_grid_y) + "\n" +
+                "Gravity: " + grv_msg + "\n\n" +
+                "Control Gravity: WASDZXC\n" +
                 "Add Particles: E\n" +
                 "Remove Particles: Q\n" +
-                "Toggle Velocity View: V",
-                fps,
-                particle,
-                particle_max,
-                n_grid_x,
-                n_grid_y,
-                gx_ch,
-                gy_ch
+                "Toggle Velocity View: V"
             );
 
-            text.setString(message);
             window.draw(text);
         }
     }
