@@ -12,9 +12,9 @@ int main() {
     const int display_x = 1280;
     const int display_y = 720;
     const int frame_rate = 60;
-    const int radius = 6;
+    const int radius = 4;
     const int substeps = 4;
-    const int ppc = 10;
+    const int ppc = 20;
     const float width = sqrt(ppc) * radius;
     const int n_grid_x = ceil(display_x / width);
     const int n_grid_y = ceil(display_y / width);

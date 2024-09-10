@@ -23,8 +23,6 @@ struct HUD {
 
     int font_size = 16;
     int font_offset = 10;
-    bool previous = false;
-    bool state = false;
 
     std::string font_path = "../font/jetbrains.ttf";
     sf::Color font_color = sf::Color::White;
@@ -45,15 +43,15 @@ struct HUD {
     void render(
         sf::RenderWindow& window,
         sf::Clock& clock,
-        int gravity_x = 0,
-        int gravity_y = 0,
-        int particle = 0,
-        int particle_max = 0,
-        int n_grid_x = 0,
-        int n_grid_y = 0,
-        bool press = false,
-        bool center = false,
-        bool explode = false
+        int gravity_x,
+        int gravity_y,
+        int particle,
+        int particle_max,
+        int grid_x,
+        int grid_y,
+        bool press,
+        bool is_center,
+        bool is_explode
     ) {
 
         show_state.toggle(press);
@@ -67,7 +65,7 @@ struct HUD {
             std::string gy_ch = std::to_string(gravity_y);
             std::string grv_msg = "(" + gx_ch + ", " + gy_ch + ")";
 
-            if (center || explode) {
+            if (is_center || is_explode) {
                 grv_msg = "Dynamic";
             }
 
@@ -75,8 +73,8 @@ struct HUD {
                 "FPS: " + std::to_string(fps) + "\n" +
                 "Particles: " + std::to_string(particle) +
                 " of " + std::to_string(particle_max) + "\n" +
-                "Grid Cells: " + std::to_string(n_grid_x) +
-                " by " + std::to_string(n_grid_y) + "\n" +
+                "Grid Cells: " + std::to_string(grid_x) +
+                " by " + std::to_string(grid_y) + "\n" +
                 "Gravity: " + grv_msg + "\n\n" +
                 "Control Gravity: WASDZXC\n" +
                 "Add Particles: E\n" +

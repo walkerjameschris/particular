@@ -240,7 +240,7 @@ struct Particles {
 
     void render(sf::RenderWindow& window, bool press) {
 
-        sf::CircleShape circle(radius * 1.5);
+        sf::CircleShape circle(radius * 1.75);
         circle.setPointCount(32);
         show_state.toggle(press);
 
@@ -258,7 +258,7 @@ struct Particles {
             );
 
             if (show_state.state) {
-                int velocity = int(clamp(velocities[i], 0, 10) * 25);
+                int velocity = int(clamp(velocities[i], 0, 5) * 50);
                 particle_color.r = velocity;
                 particle_color.g = 255 - velocity;
                 particle_color.b = 0;
