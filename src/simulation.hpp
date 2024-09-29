@@ -1,24 +1,54 @@
 #pragma once
 #include <SFML/Graphics.hpp>
 #include <unordered_map>
+#include "hash.hpp"
 #include <vector>
 #include <cmath>
 
-float unif() {
-    return rand() / float(RAND_MAX);
-}
+struct Button {
+
+    bool previous = false;
+    bool state = false;
+
+    void toggle(bool press = false) {
+        if (press && !previous) {
+            previous = true;
+            state = !state;
+        } else if (press) {
+            previous = true;
+        } else {
+            previous = false;
+        }
+    }
+};
 
 struct Particle {
     sf::Vector2f position;
     sf::Vector2f previous;
     sf::Color color;
-    float radius = 4;
+    int linked;
+    bool fixed;
+    float radius = 5;
 
-    Particle(float display) {
-        position = {unif() * display, 0};
+    Particle(
+        float display,
+        float x = -1,
+        float y = -1,
+        int link = -1,
+        bool fix = false
+    ) {
+
+        if (x < 0 || y < 0) {
+            x = hash::random() * display;
+            y = 0;
+        }
+
+        position = {x, y};
         previous = position;
-        sf::Uint8 green = 100 * unif();
-        color = {0, green, 255, 150};
+        sf::Uint8 green = 150 * hash::random();
+        color = {0, green, 255, 100};
+        linked = link;
+        fixed = fix;
     }
 };
 
@@ -27,15 +57,15 @@ struct Simulation {
     std::vector<Particle> particles;
     std::unordered_map<int, std::vector<int>> grid;
     sf::Vector2f gravity_system;
-
+    Button sim_type;
+    
     int display_x;
     int display_y;
     int n_grid_x;
     int n_grid_y;
     float delta;
 
-    int substeps = 4;
-    int max_particle = 3500;
+    int substeps = 5;
     int n_particle = 2000;
     float max_shift = 0.2;
     float force = 1000;
@@ -49,37 +79,42 @@ struct Simulation {
         delta = 1 / float(fps * substeps);
     }
 
-    float clamp(float x, float min, float max) {
-        return std::min(max, std::max(min, x));
-    }
-
-    int hash(int x, int y) {
-        return x * 73856093 ^ y * 19349663;
-    }
-
-    int hash_position(Particle& x) {
-        int x_id = floor(x.position.x / width);
-        int y_id = floor(x.position.y / width);
-        return hash(x_id, y_id);
-    }
-
     void generate() {
-        particles.emplace_back(display_x);
+
+        // Standard fluid simulation
+        if (particles.size() < n_particle && sim_type.state) {
+            particles.emplace_back(display_x);
+        }
+
+        // Verlet chain simulation
+        if (particles.size() == 0 && !sim_type.state) {
+
+            Particle host(display_x, 640, 200, 1, true);
+            particles.emplace_back(host);
+
+            for (int i = 1; i < 15; i++) {
+                Particle chain(display_x, 640, 200 + i * 5, i - 1, false);
+                particles.emplace_back(chain);
+            }
+        }
     }
 
     void impose_bounds() {
         for (Particle& i : particles) {
-            i.position.x = clamp(i.position.x, 0, display_x - i.radius * 2);
-            i.position.y = clamp(i.position.y, 0, display_y - i.radius * 2);
+            i.position.x = hash::clamp(i.position.x, 0, display_x - i.radius);
+            i.position.y = hash::clamp(i.position.y, 0, display_y - i.radius);
         }
     }
 
     void assign_grid() {
 
         grid.clear();
+        int index = 0;
 
-        for (int i = 0; i < particles.size(); i++) {
-            grid[hash_position(particles[i])].emplace_back(i);
+        for (Particle& i : particles) {
+            int id = hash::id(i.position.x, i.position.y, width);
+            grid[id].emplace_back(index);
+            index += 1;
         }
     }
 
@@ -110,22 +145,32 @@ struct Simulation {
 
             for (int b = start; b < outer.size(); b++) {
 
-                Particle& i = particles[inner[a]];
-                Particle& j = particles[outer[b]];
+                int i_id = inner[a];
+                int j_id = outer[b];
 
+                Particle& i = particles[i_id];
+                Particle& j = particles[j_id];
+                
+                bool linked = i.linked == j_id || j.linked == i_id;
                 sf::Vector2f change = i.position - j.position;
                 float distance = sqrt(pow(change.x, 2) + pow(change.y, 2));
                 float tolerance = i.radius + j.radius;
 
-                if (distance < tolerance && distance > 0) {
+                float scalar = 0.5 * (distance - tolerance);
+                sf::Vector2f divisor = scalar * change / distance;
 
-                    float scalar = 0.5 * (distance - tolerance);
-                    sf::Vector2f divisor = change / distance;
+                float x = hash::clamp(divisor.x, -max_shift, max_shift);
+                float y = hash::clamp(divisor.y, -max_shift, max_shift);
 
-                    i.position.x -= clamp(divisor.x * scalar, -max_shift, max_shift);
-                    i.position.y -= clamp(divisor.y * scalar, -max_shift, max_shift);
-                    j.position.x += clamp(divisor.x * scalar, -max_shift, max_shift);
-                    j.position.y += clamp(divisor.y * scalar, -max_shift, max_shift);
+                if ((distance < tolerance && distance > 0) || linked) {
+
+                    if (!i.fixed) {
+                        i.position -= {x, y};
+                    }
+
+                    if (!j.fixed) {
+                        j.position += {x, y};
+                    }
                 }
             }
         }
@@ -140,7 +185,7 @@ struct Simulation {
             for (int j = 0; j < n_grid_y; j++) {
                 for (int a = i - 1; a < (i + 1); a++) {
                     for (int b = j - 1; b < (j + 1); b++) {
-                        collide_inner(hash(i, j), hash(a, b));
+                        collide_inner(hash::hash(i, j), hash::hash(a, b));
                     }
                 }
             }
@@ -183,6 +228,10 @@ struct Simulation {
 
         for (Particle& i : particles) {
 
+            if (i.fixed) {
+                continue;
+            }
+
             sf::Vector2f gravity = gravity_system;
             sf::Vector2f change = i.position - i.previous;
             i.previous = i.position;
@@ -207,8 +256,15 @@ struct Simulation {
         bool right,
         bool zero,
         bool center,
-        bool explode
+        bool explode,
+        bool reset
     ) {
+
+        sim_type.toggle(reset);
+
+        if (reset) {
+            particles.clear();
+        }
                
         for (int i = 0; i < substeps; i++) {
             generate();
