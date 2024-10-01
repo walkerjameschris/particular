@@ -1,63 +1,16 @@
 #pragma once
 #include <SFML/Graphics.hpp>
 #include <unordered_map>
-#include "hash.hpp"
+#include "utilities.hpp"
 #include <vector>
+#include <string>
 #include <cmath>
-
-struct Button {
-
-    bool previous = false;
-    bool state = false;
-
-    void toggle(bool press = false) {
-        if (press && !previous) {
-            previous = true;
-            state = !state;
-        } else if (press) {
-            previous = true;
-        } else {
-            previous = false;
-        }
-    }
-};
-
-struct Particle {
-    sf::Vector2f position;
-    sf::Vector2f previous;
-    sf::Color color;
-    int linked;
-    bool fixed;
-    float radius = 5;
-
-    Particle(
-        float display,
-        float x = -1,
-        float y = -1,
-        int link = -1,
-        bool fix = false
-    ) {
-
-        if (x < 0 || y < 0) {
-            x = hash::random() * display;
-            y = 0;
-        }
-
-        position = {x, y};
-        previous = position;
-        sf::Uint8 green = 150 * hash::random();
-        color = {0, green, 255, 100};
-        linked = link;
-        fixed = fix;
-    }
-};
 
 struct Simulation {
 
-    std::vector<Particle> particles;
+    Particles particles;
     std::unordered_map<int, std::vector<int>> grid;
     sf::Vector2f gravity_system;
-    Button sim_type;
     
     int display_x;
     int display_y;
@@ -66,43 +19,31 @@ struct Simulation {
     float delta;
 
     int substeps = 5;
-    int n_particle = 2000;
     float max_shift = 0.2;
     float force = 1000;
     float width = 18;
 
-    Simulation(int x, int y, int fps) {
+    Simulation(int x, int y, int fps, bool use_grid, std::string path) {
+
+        particles = load_spec(path);
+
         display_x = x;
         display_y = y;
         n_grid_x = ceil(float(display_x) / width);
         n_grid_y = ceil(float(display_y) / width);
         delta = 1 / float(fps * substeps);
-    }
 
-    void generate() {
-
-        // Standard fluid simulation
-        if (particles.size() < n_particle && sim_type.state) {
-            particles.emplace_back(display_x);
-        }
-
-        // Verlet chain simulation
-        if (particles.size() == 0 && !sim_type.state) {
-
-            Particle host(display_x, 640, 200, 1, true);
-            particles.emplace_back(host);
-
-            for (int i = 1; i < 15; i++) {
-                Particle chain(display_x, 640, 200 + i * 5, i - 1, false);
-                particles.emplace_back(chain);
-            }
+        if (!use_grid) {
+            n_grid_x = 1;
+            n_grid_y = 1;
+            width = std::max(display_x, display_y);
         }
     }
 
     void impose_bounds() {
         for (Particle& i : particles) {
-            i.position.x = hash::clamp(i.position.x, 0, display_x - i.radius);
-            i.position.y = hash::clamp(i.position.y, 0, display_y - i.radius);
+            i.position.x = clamp(i.position.x, 0, display_x - i.radius);
+            i.position.y = clamp(i.position.y, 0, display_y - i.radius);
         }
     }
 
@@ -112,7 +53,7 @@ struct Simulation {
         int index = 0;
 
         for (Particle& i : particles) {
-            int id = hash::id(i.position.x, i.position.y, width);
+            int id = hash_id(i.position.x, i.position.y, width);
             grid[id].emplace_back(index);
             index += 1;
         }
@@ -152,6 +93,7 @@ struct Simulation {
                 Particle& j = particles[j_id];
                 
                 bool linked = i.linked == j_id || j.linked == i_id;
+
                 sf::Vector2f change = i.position - j.position;
                 float distance = sqrt(pow(change.x, 2) + pow(change.y, 2));
                 float tolerance = i.radius + j.radius;
@@ -159,17 +101,19 @@ struct Simulation {
                 float scalar = 0.5 * (distance - tolerance);
                 sf::Vector2f divisor = scalar * change / distance;
 
-                float x = hash::clamp(divisor.x, -max_shift, max_shift);
-                float y = hash::clamp(divisor.y, -max_shift, max_shift);
+                if (distance < tolerance) {
+                    divisor.x = clamp(divisor.x, -max_shift, max_shift);
+                    divisor.y = clamp(divisor.y, -max_shift, max_shift);
+                }
 
-                if ((distance < tolerance && distance > 0) || linked) {
+                if (distance < tolerance || linked) {
 
                     if (!i.fixed) {
-                        i.position -= {x, y};
+                        i.position -= divisor;
                     }
 
                     if (!j.fixed) {
-                        j.position += {x, y};
+                        j.position += divisor;
                     }
                 }
             }
@@ -185,7 +129,7 @@ struct Simulation {
             for (int j = 0; j < n_grid_y; j++) {
                 for (int a = i - 1; a < (i + 1); a++) {
                     for (int b = j - 1; b < (j + 1); b++) {
-                        collide_inner(hash::hash(i, j), hash::hash(a, b));
+                        collide_inner(hash(i, j), hash(a, b));
                     }
                 }
             }
@@ -256,18 +200,10 @@ struct Simulation {
         bool right,
         bool zero,
         bool center,
-        bool explode,
-        bool reset
+        bool explode
     ) {
-
-        sim_type.toggle(reset);
-
-        if (reset) {
-            particles.clear();
-        }
                
         for (int i = 0; i < substeps; i++) {
-            generate();
             impose_bounds();
             assign_grid();
             collide();

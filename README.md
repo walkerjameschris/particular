@@ -39,7 +39,7 @@ mkdir build
 cd build
 cmake ..
 make
-./Verlet
+./Verlet ../spec/fluid.csv
 ```
 
 Once runing, you can control gravity with _WASD_ and turn gravity off with _Z_. You
