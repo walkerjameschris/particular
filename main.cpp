@@ -1,5 +1,7 @@
 #include <SFML/Graphics.hpp>
+#include "src/fps_counter.hpp"
 #include "src/simulation.hpp"
+#include "src/particles.hpp"
 #include "src/utilities.hpp"
 #include <string>
 
@@ -8,15 +10,12 @@ int main(int argc, char* argv[]) {
     const int frame_rate = 60;
     const int display_x = 1280;
     const int display_y = 720;
+    int outcome = 0;
 
-    std::string path = argv[1];
-    bool use_grid = true;
+    std::string path = validate_path(outcome, argc, argv);
 
-    if (argc == 3) {
-        std::string flag = argv[2];
-        if (flag == "--no-grid") {
-            use_grid = false;
-        }
+    if (outcome == 1) {
+        return 1;  
     }
 
     sf::VideoMode window_scale(display_x, display_y);
@@ -24,7 +23,7 @@ int main(int argc, char* argv[]) {
     sf::Clock clock;
     sf::Event event;
 
-    Simulation simulation(display_x, display_y, frame_rate, use_grid, path);
+    Simulation simulation(display_x, display_y, frame_rate, path);
 
     window.setFramerateLimit(frame_rate);
 
@@ -38,6 +37,7 @@ int main(int argc, char* argv[]) {
 
         simulation.advance(
             window,
+            clock,
             sf::Keyboard::isKeyPressed(sf::Keyboard::W),
             sf::Keyboard::isKeyPressed(sf::Keyboard::A),
             sf::Keyboard::isKeyPressed(sf::Keyboard::D),
@@ -46,4 +46,6 @@ int main(int argc, char* argv[]) {
             sf::Keyboard::isKeyPressed(sf::Keyboard::X)
         );
     }
+
+    return 0;
 }

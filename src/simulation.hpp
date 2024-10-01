@@ -1,7 +1,9 @@
 #pragma once
 #include <SFML/Graphics.hpp>
-#include <unordered_map>
+#include "fps_counter.hpp"
+#include "particles.hpp"
 #include "utilities.hpp"
+#include <unordered_map>
 #include <vector>
 #include <string>
 #include <cmath>
@@ -11,6 +13,7 @@ struct Simulation {
     Particles particles;
     std::unordered_map<int, std::vector<int>> grid;
     sf::Vector2f gravity_system;
+    FPS_Counter fps_counter;
     
     int display_x;
     int display_y;
@@ -23,9 +26,9 @@ struct Simulation {
     float force = 1000;
     float width = 18;
 
-    Simulation(int x, int y, int fps, bool use_grid, std::string path) {
+    Simulation(int x, int y, int fps, std::string path) {
 
-        particles = load_spec(path);
+        particles.load_spec(path);
 
         display_x = x;
         display_y = y;
@@ -33,7 +36,7 @@ struct Simulation {
         n_grid_y = ceil(float(display_y) / width);
         delta = 1 / float(fps * substeps);
 
-        if (!use_grid) {
+        if (!particles.use_grid) {
             n_grid_x = 1;
             n_grid_y = 1;
             width = std::max(display_x, display_y);
@@ -41,7 +44,7 @@ struct Simulation {
     }
 
     void impose_bounds() {
-        for (Particle& i : particles) {
+        for (Particle& i : particles.contents) {
             i.position.x = clamp(i.position.x, 0, display_x - i.radius);
             i.position.y = clamp(i.position.y, 0, display_y - i.radius);
         }
@@ -52,7 +55,7 @@ struct Simulation {
         grid.clear();
         int index = 0;
 
-        for (Particle& i : particles) {
+        for (Particle& i : particles.contents) {
             int id = hash_id(i.position.x, i.position.y, width);
             grid[id].emplace_back(index);
             index += 1;
@@ -89,8 +92,8 @@ struct Simulation {
                 int i_id = inner[a];
                 int j_id = outer[b];
 
-                Particle& i = particles[i_id];
-                Particle& j = particles[j_id];
+                Particle& i = particles.contents[i_id];
+                Particle& j = particles.contents[j_id];
                 
                 bool linked = i.linked == j_id || j.linked == i_id;
 
@@ -151,13 +154,13 @@ struct Simulation {
         }
     }
     
-    void render(sf::RenderWindow& window) {
-
-        window.clear();
+    void render(sf::RenderWindow& window, sf::Clock& clock) {
 
         sf::CircleShape circle;
 
-        for (Particle& i : particles) {
+        window.clear();
+
+        for (Particle& i : particles.contents) {
             circle.setPointCount(32);
             circle.setRadius(i.radius * 1.75);
             circle.setPosition(i.position);
@@ -165,12 +168,14 @@ struct Simulation {
             window.draw(circle);
         }
 
+        fps_counter.render(window, clock);
+
         window.display();
     }
  
     void move(bool center, bool explode) {
 
-        for (Particle& i : particles) {
+        for (Particle& i : particles.contents) {
 
             if (i.fixed) {
                 continue;
@@ -195,6 +200,7 @@ struct Simulation {
 
     void advance(
         sf::RenderWindow& window,
+        sf::Clock& clock,
         bool up,
         bool left,
         bool right,
@@ -211,6 +217,6 @@ struct Simulation {
             move(center, explode);
         }
 
-        render(window);
+        render(window, clock);
     }
 };

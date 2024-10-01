@@ -42,15 +42,11 @@ make
 ./Verlet ../spec/fluid.csv
 ```
 
-Once runing, you can control gravity with _WASD_ and turn gravity off with _Z_. You
-can also hold _I_ for realtime information about the simulation like FPS, etc.
-
 # Contents
 
 * `CMakeLists.txt`: A CMake file desined for cross-platform compilation
 * `main.cpp`: The driver file for the simulation with `SFML`
-* `src/particle.hpp`: The header file defining particle behavior
-* `src/hud.hpp`: The header file for the head's up display (HUD)
+* `src/`: Header files defining particle behavior
 * `font/jetbrains.tff`: The font for the HUD
 
 # Resources
