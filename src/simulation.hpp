@@ -14,6 +14,7 @@ struct Simulation {
     std::unordered_map<int, std::vector<int>> grid;
     sf::Vector2f gravity_system;
     FPS_Counter fps_counter;
+    std::string path;
     
     int display_x;
     int display_y;
@@ -26,15 +27,16 @@ struct Simulation {
     float force = 1000;
     float width = 18;
 
-    Simulation(int x, int y, int fps, std::string path) {
+    Simulation(int x, int y, int fps, std::string file) {
 
-        particles.load_spec(path);
+        particles.load_spec(file);
 
         display_x = x;
         display_y = y;
         n_grid_x = ceil(float(display_x) / width);
         n_grid_y = ceil(float(display_y) / width);
         delta = 1 / float(fps * substeps);
+        path = file;
 
         if (!particles.use_grid) {
             n_grid_x = 1;
@@ -162,7 +164,7 @@ struct Simulation {
 
         for (Particle& i : particles.contents) {
             circle.setPointCount(32);
-            circle.setRadius(i.radius * 1.75);
+            circle.setRadius(i.radius);
             circle.setPosition(i.position);
             circle.setFillColor(i.color);
             window.draw(circle);
@@ -206,8 +208,14 @@ struct Simulation {
         bool right,
         bool zero,
         bool center,
-        bool explode
+        bool explode,
+        bool reset
     ) {
+
+        if (reset) {
+            particles.contents.clear();
+            particles.load_spec(path);
+        }
                
         for (int i = 0; i < substeps; i++) {
             impose_bounds();

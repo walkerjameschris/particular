@@ -43,7 +43,8 @@ int main(int argc, char* argv[]) {
             sf::Keyboard::isKeyPressed(sf::Keyboard::D),
             sf::Keyboard::isKeyPressed(sf::Keyboard::Z),
             sf::Keyboard::isKeyPressed(sf::Keyboard::C),
-            sf::Keyboard::isKeyPressed(sf::Keyboard::X)
+            sf::Keyboard::isKeyPressed(sf::Keyboard::X),
+            sf::Keyboard::isKeyPressed(sf::Keyboard::R)
         );
     }
 
