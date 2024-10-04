@@ -247,7 +247,6 @@ struct Simulation {
     ) {
 
         if (reset) {
-            particles.contents.clear();
             particles.load_spec(path);
         }
                

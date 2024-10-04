@@ -21,6 +21,9 @@ struct Particles {
     std::vector<int> linked_particles;
 
     void load_spec(std::string path = "") {
+
+        contents.clear();
+        linked_particles.clear();
     
         std::vector<std::vector<std::string>> data;
         std::ifstream file_buffer(path);
