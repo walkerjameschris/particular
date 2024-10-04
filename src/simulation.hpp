@@ -158,7 +158,7 @@ struct Simulation {
         }
     }
 
-    void collide() {
+    void collide(bool unlink) {
         // High performance Verlet integrator which uses
         // a subspace grid to transform search space from
         // O(N^2) to approximately O(N) for particle
@@ -168,7 +168,10 @@ struct Simulation {
         // interaction.
 
         collide_grid();
-        collide_linked();
+
+        if (!unlink) {
+            collide_linked();
+        }
     }
 
     void adjust_gravity(bool up, bool left, bool right, bool zero) {
@@ -239,7 +242,8 @@ struct Simulation {
         bool zero,
         bool center,
         bool explode,
-        bool reset
+        bool reset,
+        bool unlink
     ) {
 
         if (reset) {
@@ -250,7 +254,7 @@ struct Simulation {
         for (int i = 0; i < substeps; i++) {
             impose_bounds();
             assign_grid();
-            collide();
+            collide(unlink);
             adjust_gravity(up, left, right, zero);
             move(center, explode);
         }
