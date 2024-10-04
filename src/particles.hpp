@@ -18,7 +18,7 @@ struct Particle {
 struct Particles {
 
     std::vector<Particle> contents;
-    bool use_grid = true;
+    std::vector<int> linked_particles;
 
     void load_spec(std::string path = "") {
     
@@ -40,33 +40,30 @@ struct Particles {
         }
 
         file_buffer.close();
+        Particle particle;
+        int index = 0;
 
         for (auto row : data) {
-
-            Particle new_particle;
-
             for (int i = 0; i < row.size(); i++) {
-
-                std::string x = row[i];
-
                 if (i == 0) {
-                    new_particle.position.x = std::stof(x);
-                    new_particle.previous.x = std::stof(x);
+                    particle.position.x = std::stof(row[i]);
+                    particle.previous.x = std::stof(row[i]);
                 } else if (i == 1) {
-                    new_particle.position.y = std::stof(x);
-                    new_particle.previous.y = std::stof(x);
+                    particle.position.y = std::stof(row[i]);
+                    particle.previous.y = std::stof(row[i]);
                 } else if (i == 2) {
-                    new_particle.linked = std::stoi(x);
+                    particle.linked = std::stoi(row[i]);
                 } else if (i == 3) {
-                    new_particle.fixed = 1 == std::stoi(x);
+                    particle.fixed = 1 == std::stoi(row[i]);
                 }
             }
 
-            if (new_particle.linked >= 0) {
-                use_grid = false;
+            if (particle.linked >= 0) {
+                linked_particles.push_back(index);
             }
 
-            contents.push_back(new_particle);
+            contents.push_back(particle);
+            index += 1;
         }
     }
 };

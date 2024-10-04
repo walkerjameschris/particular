@@ -37,12 +37,6 @@ struct Simulation {
         n_grid_y = ceil(float(display_y) / width);
         delta = 1 / float(fps * substeps);
         path = file;
-
-        if (!particles.use_grid) {
-            n_grid_x = 1;
-            n_grid_y = 1;
-            width = std::max(display_x, display_y);
-        }
     }
 
     void impose_bounds() {
@@ -64,14 +58,40 @@ struct Simulation {
         }
     }
 
-    void collide_inner(int inner_id, int outer_id) {
-        // High performance Verlet integrator which uses
-        // a subspace grid to transform search space from
-        // O(N^2) to approximately O(N) for particle
-        // collision. This detects whether two particles
-        // are within some distance and nudges them apart
-        // along the axis of collision to solve particle
-        // interaction.
+    void verlet(Particle& i, Particle& j, bool linked) {
+        // Handles all collision math for two paricle
+        // representations in accordance with Verlet
+        // equations. Works for both inner collisions
+        // and chain systems.
+
+        sf::Vector2f change = i.position - j.position;
+        float distance = sqrt(pow(change.x, 2) + pow(change.y, 2));
+        float tolerance = i.radius + j.radius;
+
+        float scalar = 0.5 * (distance - tolerance);
+        sf::Vector2f divisor = scalar * change / distance;
+
+        if (distance < tolerance) {
+            divisor.x = clamp(divisor.x, -max_shift, max_shift);
+            divisor.y = clamp(divisor.y, -max_shift, max_shift);
+        }
+
+        if (distance < tolerance || linked) {
+
+            if (!i.fixed) {
+                i.position -= divisor;
+            }
+
+            if (!j.fixed) {
+                j.position += divisor;
+            }
+        }
+    }
+
+    void collide_inner_grid(int inner_id, int outer_id) {
+        // Handles cycles of collising within a grid
+        // cell across the subspace grid. Used for
+        // interior collision.
 
         std::vector<int>& inner = grid[inner_id];
         std::vector<int>& outer = grid[outer_id];
@@ -96,36 +116,17 @@ struct Simulation {
 
                 Particle& i = particles.contents[i_id];
                 Particle& j = particles.contents[j_id];
+
+                if (i.linked == j_id || j.linked == i_id) {
+                    continue;
+                }
                 
-                bool linked = i.linked == j_id || j.linked == i_id;
-
-                sf::Vector2f change = i.position - j.position;
-                float distance = sqrt(pow(change.x, 2) + pow(change.y, 2));
-                float tolerance = i.radius + j.radius;
-
-                float scalar = 0.5 * (distance - tolerance);
-                sf::Vector2f divisor = scalar * change / distance;
-
-                if (distance < tolerance) {
-                    divisor.x = clamp(divisor.x, -max_shift, max_shift);
-                    divisor.y = clamp(divisor.y, -max_shift, max_shift);
-                }
-
-                if (distance < tolerance || linked) {
-
-                    if (!i.fixed) {
-                        i.position -= divisor;
-                    }
-
-                    if (!j.fixed) {
-                        j.position += divisor;
-                    }
-                }
+                verlet(i, j, false);
             }
         }
     }
 
-    void collide() {
+    void collide_grid() {
         // Iterates through the simulation space grid. This
         // cycles through all grid cells and detects collision
         // between the current cell and all neighboring cells.
@@ -134,11 +135,40 @@ struct Simulation {
             for (int j = 0; j < n_grid_y; j++) {
                 for (int a = i - 1; a < (i + 1); a++) {
                     for (int b = j - 1; b < (j + 1); b++) {
-                        collide_inner(hash(i, j), hash(a, b));
+                        collide_inner_grid(hash(i, j), hash(a, b));
                     }
                 }
             }
         }
+    }
+
+    void collide_linked() {
+        // This ensures all particles which are linked
+        // are checked and integrated agianst their 
+        // linked particles.
+
+        for (int idx : particles.linked_particles) {
+
+            Particle& i = particles.contents[idx];
+
+            if (i.linked >= 0 && i.linked < particles.contents.size()) {
+                Particle& j = particles.contents[i.linked];
+                verlet(i, j, true);
+            }
+        }
+    }
+
+    void collide() {
+        // High performance Verlet integrator which uses
+        // a subspace grid to transform search space from
+        // O(N^2) to approximately O(N) for particle
+        // collision. This detects whether two particles
+        // are within some distance and nudges them apart
+        // along the axis of collision to solve particle
+        // interaction.
+
+        collide_grid();
+        collide_linked();
     }
 
     void adjust_gravity(bool up, bool left, bool right, bool zero) {
@@ -164,7 +194,7 @@ struct Simulation {
 
         for (Particle& i : particles.contents) {
             circle.setPointCount(32);
-            circle.setRadius(i.radius);
+            circle.setRadius(i.radius * 1.25);
             circle.setPosition(i.position);
             circle.setFillColor(i.color);
             window.draw(circle);
