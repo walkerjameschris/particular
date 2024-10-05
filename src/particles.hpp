@@ -58,6 +58,8 @@ struct Particles {
                     particle.linked = std::stoi(row[i]);
                 } else if (i == 3) {
                     particle.fixed = 1 == std::stoi(row[i]);
+                } else if (i == 4) {
+                    particle.radius = std::stof(row[i]);
                 }
             }
 

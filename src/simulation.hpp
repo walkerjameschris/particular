@@ -22,7 +22,7 @@ struct Simulation {
     int n_grid_y;
     float delta;
 
-    int substeps = 5;
+    int substeps = 4;
     float max_shift = 0.2;
     float force = 1000;
     float width = 18;
@@ -67,6 +67,8 @@ struct Simulation {
         sf::Vector2f change = i.position - j.position;
         float distance = sqrt(pow(change.x, 2) + pow(change.y, 2));
         float tolerance = i.radius + j.radius;
+        float i_ratio = i.radius / tolerance;
+        float j_ratio = j.radius / tolerance;
 
         float scalar = 0.5 * (distance - tolerance);
         sf::Vector2f divisor = scalar * change / distance;
@@ -79,11 +81,11 @@ struct Simulation {
         if (distance < tolerance || linked) {
 
             if (!i.fixed) {
-                i.position -= divisor;
+                i.position -= divisor * i_ratio;
             }
 
             if (!j.fixed) {
-                j.position += divisor;
+                j.position += divisor * j_ratio;
             }
         }
     }

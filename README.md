@@ -30,7 +30,7 @@ one dependency, this follows a typical CMake workflow:
 1. Create `build/` directory in this repo
 2. Navigate to build and run `cmake ..`
 3. Run `make`
-4. Run the binary called `Verlet`
+4. Run the binary
 
 On Linux that is (assuming you are in the base directory of this repo):
 
@@ -47,7 +47,7 @@ make
 * `CMakeLists.txt`: A CMake file desined for cross-platform compilation
 * `main.cpp`: The driver file for the simulation with `SFML`
 * `src/`: Header files defining particle behavior
-* `font/jetbrains.tff`: The font for the HUD
+* `font/`: The font for the HUD
 
 # Resources
 
