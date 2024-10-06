@@ -2,7 +2,6 @@
 #include "src/fps_counter.hpp"
 #include "src/simulation.hpp"
 #include "src/particles.hpp"
-#include "src/utilities.hpp"
 #include <string>
 
 int main(int argc, char* argv[]) {
@@ -10,20 +9,13 @@ int main(int argc, char* argv[]) {
     const int frame_rate = 60;
     const int display_x = 1280;
     const int display_y = 720;
-    int outcome = 0;
-
-    std::string path = validate_path(outcome, argc, argv);
-
-    if (outcome == 1) {
-        return 1;  
-    }
-
+    
     sf::VideoMode window_scale(display_x, display_y);
     sf::RenderWindow window(window_scale, "Particular");
     sf::Clock clock;
     sf::Event event;
 
-    Simulation simulation(display_x, display_y, frame_rate, path);
+    Simulation simulation(display_x, display_y, frame_rate, argv[1]);
 
     window.setFramerateLimit(frame_rate);
 

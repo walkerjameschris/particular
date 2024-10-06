@@ -2,33 +2,31 @@
 #include <SFML/Graphics.hpp>
 #include "fps_counter.hpp"
 #include "particles.hpp"
-#include "utilities.hpp"
 #include <unordered_map>
+#include <algorithm>
 #include <utility>
 #include <vector>
 #include <string>
 #include <cmath>
 #include <set>
 
-using key = std::pair<int, int>;
-
 struct Simulation {
 
-    Particles particles;
     std::unordered_map<int, std::vector<int>> grid;
-    std::set<key> valid_grid;
-    sf::Vector2f gravity_system;
-    FPS_Counter fps_counter;
+    std::set<std::pair<int, int>> valid_grid;
+    sf::Vector2f system_gravity;
+    Particles particles;
     std::string path;
+    FPS fps_counter;
     
-    int display_x;
-    int display_y;
+    float display_x;
+    float display_y;
     float delta;
 
-    int substeps = 4;
-    float max_shift = 0.2;
+    int substeps = 3;
+    float limit = 0.2;
     float force = 1000;
-    float width = 18;
+    float width = 15;
 
     Simulation(int x, int y, int fps, std::string file) {
         particles.load_spec(file);
@@ -38,10 +36,14 @@ struct Simulation {
         path = file;
     }
 
+    static int hash(int x, int y) {
+        return x * 73856093 ^ y * 19349663;
+    }
+
     void impose_bounds() {
         for (Particle& i : particles.contents) {
-            i.position.x = clamp(i.position.x, 0, display_x - i.radius);
-            i.position.y = clamp(i.position.y, 0, display_y - i.radius);
+            i.position.x = std::clamp(i.position.x, 0.f, display_x - i.radius);
+            i.position.y = std::clamp(i.position.y, 0.f, display_y - i.radius);
         }
     }
 
@@ -52,22 +54,26 @@ struct Simulation {
         int index = 0;
 
         for (Particle& i : particles.contents) {
-            int x_id = raw_id(i.position.x, width);
-            int y_id = raw_id(i.position.y, width);
+
+            int x_id = floor(i.position.x / width);
+            int y_id = floor(i.position.y / width);
             int id = hash(x_id, y_id);
+
             valid_grid.insert({x_id, y_id});
             grid[id].emplace_back(index);
+
             index += 1;
         }
     }
 
     void verlet(Particle& i, Particle& j, bool linked) {
-        // Handles all collision math for two paricle
-        // representations in accordance with Verlet
-        // equations. Works for both inner collisions
-        // and chain systems.
 
         sf::Vector2f change = i.position - j.position;
+
+        if (change.x == 0 && change.y == 0) {
+            return;
+        }
+
         float distance = sqrt(pow(change.x, 2) + pow(change.y, 2));
         float tolerance = i.radius + j.radius;
         float i_ratio = i.radius / tolerance;
@@ -77,8 +83,8 @@ struct Simulation {
         sf::Vector2f divisor = scalar * change / distance;
 
         if (distance < tolerance) {
-            divisor.x = clamp(divisor.x, -max_shift, max_shift);
-            divisor.y = clamp(divisor.y, -max_shift, max_shift);
+            divisor.x = std::clamp(divisor.x, -limit, limit);
+            divisor.y = std::clamp(divisor.y, -limit, limit);
         }
 
         if (distance < tolerance || linked) {
@@ -94,9 +100,6 @@ struct Simulation {
     }
 
     void collide_inner_grid(int inner_id, int outer_id) {
-        // Handles cycles of collising within a grid
-        // cell across the subspace grid. Used for
-        // interior collision.
 
         std::vector<int>& inner = grid[inner_id];
         std::vector<int>& outer = grid[outer_id];
@@ -132,67 +135,41 @@ struct Simulation {
     }
 
     void collide_grid() {
-        // Iterates through the simulation space grid. This
-        // cycles through all grid cells and detects collision
-        // between the current cell and all neighboring cells.
 
-        for (auto& x : valid_grid) {
-
-            int i = x.first;
-            int j = x.second;
-
-            for (int a = i - 1; a < (i + 1); a++) {
-                for (int b = j - 1; b < (j + 1); b++) {
-                    collide_inner_grid(hash(i, j), hash(a, b));
+        for (std::pair<int, int> x : valid_grid) {
+            for (int a = x.first - 1; a < (x.first + 1); a++) {
+                for (int b = x.second - 1; b < (x.second + 1); b++) {
+                    collide_inner_grid(hash(x.first, x.second), hash(a, b));
                 }
             }
         }
     }
 
-    void collide_linked() {
-        // This ensures all particles which are linked
-        // are checked and integrated agianst their 
-        // linked particles.
+    void collide_linked(bool unlink) {
 
-        for (int idx : particles.linked_particles) {
-
-            Particle& i = particles.contents[idx];
-
-            if (i.linked >= 0 && i.linked < particles.contents.size()) {
-                Particle& j = particles.contents[i.linked];
-                verlet(i, j, true);
-            }
+        if (unlink) {
+            return;
         }
-    }
 
-    void collide(bool unlink) {
-        // High performance Verlet integrator which uses
-        // a subspace grid to transform search space from
-        // O(N^2) to approximately O(N) for particle
-        // collision. This detects whether two particles
-        // are within some distance and nudges them apart
-        // along the axis of collision to solve particle
-        // interaction.
-
-        collide_grid();
-
-        if (!unlink) {
-            collide_linked();
+        for (int index : particles.linked_particles) {
+            Particle& i = particles.contents[index];
+            Particle& j = particles.contents[i.linked];
+            verlet(i, j, true);
         }
     }
 
     void adjust_gravity(bool up, bool left, bool right, bool zero) {
 
-        gravity_system = {0, force};
+        system_gravity = {0, force};
         
         if (zero) {
-            gravity_system = {0, 0};
+            system_gravity = {0, 0};
         } else if (up) {
-            gravity_system = {0, -force};
+            system_gravity = {0, -force};
         } else if (left) {
-            gravity_system = {-force, 0};
+            system_gravity = {-force, 0};
         } else if (right) {
-            gravity_system = {force, 0};
+            system_gravity = {force, 0};
         }
     }
     
@@ -211,7 +188,6 @@ struct Simulation {
         }
 
         fps_counter.render(window, clock);
-
         window.display();
     }
  
@@ -223,7 +199,7 @@ struct Simulation {
                 continue;
             }
 
-            sf::Vector2f gravity = gravity_system;
+            sf::Vector2f gravity = system_gravity;
             sf::Vector2f change = i.position - i.previous;
             i.previous = i.position;
 
@@ -233,7 +209,7 @@ struct Simulation {
             }
 
             if (center) {
-                gravity *= float(-1);
+                gravity *= -1.0f;
             }
 
             i.position += change + gravity * delta * delta;
@@ -260,7 +236,8 @@ struct Simulation {
         for (int i = 0; i < substeps; i++) {
             impose_bounds();
             assign_grid();
-            collide(unlink);
+            collide_grid();
+            collide_linked(unlink);
             adjust_gravity(up, left, right, zero);
             move(center, explode);
         }

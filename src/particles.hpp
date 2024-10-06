@@ -21,12 +21,15 @@ struct Particles {
     std::vector<Particle> contents;
     std::vector<int> linked_particles;
 
+    // TODO: Add parser validation and make less clunky
+    // This is super sketchy and is asking for a segfault
     void load_spec(std::string path = "") {
 
         contents.clear();
         linked_particles.clear();
     
         std::vector<std::vector<std::string>> data;
+        std::vector<int> link_buffer;
         std::ifstream file_buffer(path);
         std::string line;
 
@@ -67,11 +70,17 @@ struct Particles {
             }
 
             if (particle.linked >= 0) {
-                linked_particles.push_back(index);
+                link_buffer.push_back(index);
             }
 
             contents.push_back(particle);
             index += 1;
+        }
+
+        for (int i : link_buffer) {
+            if (i < contents.size()) {
+                linked_particles.push_back(i);
+            }
         }
     }
 };

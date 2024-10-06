@@ -2,7 +2,7 @@
 #include <SFML/Graphics.hpp>
 #include <string>
 
-struct FPS_Counter {
+struct FPS {
 
     int font_size = 16;
     int font_offset = 10;
@@ -13,7 +13,7 @@ struct FPS_Counter {
     sf::Font font;
     sf::Text text;
 
-    FPS_Counter() {
+    FPS() {
         font.loadFromFile(font_path);
         text.setFont(font);
         text.setCharacterSize(font_size);
@@ -21,10 +21,11 @@ struct FPS_Counter {
         text.setFillColor(font_color);
     }
 
-    void render(sf::RenderWindow& window, sf::Clock& clock) {
-        int fps = 1 / clock.getElapsedTime().asSeconds();
+    float render(sf::RenderWindow& window, sf::Clock& clock) {
+        float fps = 1 / clock.getElapsedTime().asSeconds();
         clock.restart();
-        text.setString("FPS: " + std::to_string(fps));
+        text.setString("FPS: " + std::to_string(int(fps)));
         window.draw(text);
+        return fps;
     }
 };
