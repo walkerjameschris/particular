@@ -12,7 +12,8 @@ struct Particle {
     int linked = -1;
     bool fixed = false;
     float radius = 5;
-    sf::Color color = {0, 150, 255, 100};
+    float delay = 0;
+    sf::Color color = {0, 150, 255, 150};
 };
 
 struct Particles {
@@ -60,6 +61,8 @@ struct Particles {
                     particle.fixed = 1 == std::stoi(row[i]);
                 } else if (i == 4) {
                     particle.radius = std::stof(row[i]);
+                } else if (i == 5) {
+                    particle.delay = std::stof(row[i]);
                 }
             }
 

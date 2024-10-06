@@ -11,10 +11,8 @@ int hash(int x, int y) {
     return x * 73856093 ^ y * 19349663;
 }
 
-int hash_id(int x, int y, float width) {
-    int x_id = floor(x / width);
-    int y_id = floor(y / width);
-    return hash(x_id, y_id);
+int raw_id(int x, float width) {
+    return floor(x / width);
 }
 
 std::string validate_path(int& outcome, int argc, char* argv[]) {

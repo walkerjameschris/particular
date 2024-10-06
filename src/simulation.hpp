@@ -4,22 +4,25 @@
 #include "particles.hpp"
 #include "utilities.hpp"
 #include <unordered_map>
+#include <utility>
 #include <vector>
 #include <string>
 #include <cmath>
+#include <set>
+
+using key = std::pair<int, int>;
 
 struct Simulation {
 
     Particles particles;
     std::unordered_map<int, std::vector<int>> grid;
+    std::set<key> valid_grid;
     sf::Vector2f gravity_system;
     FPS_Counter fps_counter;
     std::string path;
     
     int display_x;
     int display_y;
-    int n_grid_x;
-    int n_grid_y;
     float delta;
 
     int substeps = 4;
@@ -28,13 +31,9 @@ struct Simulation {
     float width = 18;
 
     Simulation(int x, int y, int fps, std::string file) {
-
         particles.load_spec(file);
-
         display_x = x;
         display_y = y;
-        n_grid_x = ceil(float(display_x) / width);
-        n_grid_y = ceil(float(display_y) / width);
         delta = 1 / float(fps * substeps);
         path = file;
     }
@@ -49,10 +48,14 @@ struct Simulation {
     void assign_grid() {
 
         grid.clear();
+        valid_grid.clear();
         int index = 0;
 
         for (Particle& i : particles.contents) {
-            int id = hash_id(i.position.x, i.position.y, width);
+            int x_id = raw_id(i.position.x, width);
+            int y_id = raw_id(i.position.y, width);
+            int id = hash(x_id, y_id);
+            valid_grid.insert({x_id, y_id});
             grid[id].emplace_back(index);
             index += 1;
         }
@@ -133,12 +136,14 @@ struct Simulation {
         // cycles through all grid cells and detects collision
         // between the current cell and all neighboring cells.
 
-        for (int i = 0; i < n_grid_x; i++) {
-            for (int j = 0; j < n_grid_y; j++) {
-                for (int a = i - 1; a < (i + 1); a++) {
-                    for (int b = j - 1; b < (j + 1); b++) {
-                        collide_inner_grid(hash(i, j), hash(a, b));
-                    }
+        for (auto& x : valid_grid) {
+
+            int i = x.first;
+            int j = x.second;
+
+            for (int a = i - 1; a < (i + 1); a++) {
+                for (int b = j - 1; b < (j + 1); b++) {
+                    collide_inner_grid(hash(i, j), hash(a, b));
                 }
             }
         }
