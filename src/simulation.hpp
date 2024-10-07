@@ -2,20 +2,20 @@
 #include <SFML/Graphics.hpp>
 #include "fps_counter.hpp"
 #include "particles.hpp"
-#include <unordered_map>
 #include <algorithm>
 #include <utility>
 #include <vector>
 #include <string>
 #include <cmath>
-#include <set>
+#include <map>
+
+using Key = std::pair<int, int>;
 
 struct Simulation {
 
-    std::unordered_map<int, std::vector<int>> grid;
-    std::set<std::pair<int, int>> valid_grid;
-    sf::Vector2f system_gravity;
     Particles particles;
+    std::map<Key, std::vector<int>> grid;
+    sf::Vector2f system_gravity;
     std::string path;
     FPS fps_counter;
     
@@ -25,7 +25,7 @@ struct Simulation {
 
     int substeps = 3;
     float force = 1000;
-    float width = 15;
+    float width = 16;
 
     Simulation(int x, int y, int fps, std::string file) {
         particles.load_spec(file);
@@ -33,10 +33,6 @@ struct Simulation {
         display_y = y;
         delta = 1 / float(fps * substeps);
         path = file;
-    }
-
-    static int hash(int x, int y) {
-        return x * 73856093 ^ y * 19349663;
     }
 
     void impose_bounds() {
@@ -49,18 +45,12 @@ struct Simulation {
     void assign_grid() {
 
         grid.clear();
-        valid_grid.clear();
         int index = 0;
 
         for (Particle& i : particles.contents) {
-
             int x_id = floor(i.position.x / width);
             int y_id = floor(i.position.y / width);
-            int id = hash(x_id, y_id);
-
-            valid_grid.insert({x_id, y_id});
-            grid[id].emplace_back(index);
-
+            grid[{x_id, y_id}].emplace_back(index);
             index += 1;
         }
     }
@@ -93,7 +83,7 @@ struct Simulation {
         }
     }
 
-    void collide_inner_grid(int inner_id, int outer_id) {
+    void collide_inner_grid(Key inner_id, Key outer_id) {
 
         std::vector<int>& inner = grid[inner_id];
         std::vector<int>& outer = grid[outer_id];
@@ -130,10 +120,11 @@ struct Simulation {
 
     void collide_grid() {
 
-        for (std::pair<int, int> x : valid_grid) {
+        for (auto& element : grid) {
+            Key x = element.first;
             for (int a = x.first - 1; a < (x.first + 1); a++) {
                 for (int b = x.second - 1; b < (x.second + 1); b++) {
-                    collide_inner_grid(hash(x.first, x.second), hash(a, b));
+                    collide_inner_grid({x.first, x.second}, {a, b});
                 }
             }
         }
@@ -175,7 +166,7 @@ struct Simulation {
 
         for (Particle& i : particles.contents) {
             circle.setPointCount(32);
-            circle.setRadius(i.radius * 1.25);
+            circle.setRadius(i.radius * 1.1);
             circle.setPosition(i.position);
             circle.setFillColor(i.color);
             window.draw(circle);
