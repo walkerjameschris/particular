@@ -24,7 +24,6 @@ struct Simulation {
     float delta;
 
     int substeps = 3;
-    float limit = 0.2;
     float force = 1000;
     float width = 15;
 
@@ -81,11 +80,6 @@ struct Simulation {
 
         float scalar = 0.5 * (distance - tolerance);
         sf::Vector2f divisor = scalar * change / distance;
-
-        if (distance < tolerance) {
-            divisor.x = std::clamp(divisor.x, -limit, limit);
-            divisor.y = std::clamp(divisor.y, -limit, limit);
-        }
 
         if (distance < tolerance || linked) {
 
