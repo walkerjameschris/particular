@@ -14,6 +14,7 @@ using Key = std::pair<int, int>;
 struct Simulation {
 
     Particles particles;
+    sf::CircleShape circle;
     std::map<Key, std::vector<int>> grid;
     sf::Vector2f system_gravity;
     std::string path;
@@ -25,7 +26,7 @@ struct Simulation {
 
     int substeps = 3;
     float force = 1000;
-    float width = 16;
+    float width = 18;
 
     Simulation(int x, int y, int fps, std::string file) {
         particles.load_spec(file);
@@ -63,15 +64,17 @@ struct Simulation {
             return;
         }
 
-        float distance = sqrt(pow(change.x, 2) + pow(change.y, 2));
+        float d_sqrd = change.x * change.x + change.y * change.y;
         float tolerance = i.radius + j.radius;
-        float i_ratio = i.radius / tolerance;
-        float j_ratio = j.radius / tolerance;
 
-        float scalar = 0.5 * (distance - tolerance);
-        sf::Vector2f divisor = scalar * change / distance;
+        if ((d_sqrd < tolerance * tolerance) || linked) {
 
-        if (distance < tolerance || linked) {
+            float distance = sqrt(d_sqrd);
+            float i_ratio = i.radius / tolerance;
+            float j_ratio = j.radius / tolerance;
+
+            float scalar = 0.5 * (distance - tolerance);
+            sf::Vector2f divisor = scalar * change / distance;
 
             if (!i.fixed) {
                 i.position -= divisor * i_ratio;
@@ -160,13 +163,11 @@ struct Simulation {
     
     void render(sf::RenderWindow& window, sf::Clock& clock) {
 
-        sf::CircleShape circle;
-
         window.clear();
 
         for (Particle& i : particles.contents) {
             circle.setPointCount(32);
-            circle.setRadius(i.radius * 1.1);
+            circle.setRadius(i.radius * 1.5);
             circle.setPosition(i.position);
             circle.setFillColor(i.color);
             window.draw(circle);
