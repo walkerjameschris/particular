@@ -1,10 +1,26 @@
 #pragma once
 #include <SFML/Graphics.hpp>
+#include <filesystem>
 #include <iostream>
 #include <fstream>
 #include <sstream>
 #include <string>
 #include <vector>
+
+std::string validate_path(int argc, char* argv[]) {
+
+    if (argc < 2) {
+        std::cout << "You must provide a spec path!\n";
+        std::exit(1);
+    }
+
+    if (!std::filesystem::exists(argv[1])) {
+        std::cout << "File does not exist!\n";
+        std::exit(1);
+    }
+
+    return argv[1];
+}
 
 struct Particle {
     sf::Vector2f position = {1, 1};
@@ -16,13 +32,31 @@ struct Particle {
     sf::Color color = {0, 150, 255, 150};
 };
 
+int str_to_int(std::string x, bool& skip) {
+
+    try {
+        return std::stoi(x);
+    } catch (...) {
+        skip = true;
+        return 0;
+    }
+}
+
+float str_to_num(std::string x, bool& skip) {
+
+    try {
+        return std::stof(x);
+    } catch (...) {
+        skip = true;
+        return 0;
+    }
+}
+
 struct Particles {
 
     std::vector<Particle> contents;
     std::vector<int> linked_particles;
 
-    // TODO: Add parser validation and make less clunky
-    // This is super sketchy and is asking for a segfault
     void load_spec(std::string path = "") {
 
         contents.clear();
@@ -51,22 +85,27 @@ struct Particles {
         int index = 0;
 
         for (auto row : data) {
+
+            bool skip = false;
+
             for (int i = 0; i < row.size(); i++) {
                 if (i == 0) {
-                    particle.position.x = std::stof(row[i]);
-                    particle.previous.x = std::stof(row[i]);
+                    particle.position.x = str_to_num(row[i], skip);
+                    particle.previous.x = str_to_num(row[i], skip);
                 } else if (i == 1) {
-                    particle.position.y = std::stof(row[i]);
-                    particle.previous.y = std::stof(row[i]);
+                    particle.position.y = str_to_num(row[i], skip);
+                    particle.previous.y = str_to_num(row[i], skip);
                 } else if (i == 2) {
-                    particle.linked = std::stoi(row[i]);
+                    particle.linked = str_to_int(row[i], skip);
                 } else if (i == 3) {
-                    particle.fixed = 1 == std::stoi(row[i]);
+                    particle.fixed = 1 == str_to_int(row[i], skip);
                 } else if (i == 4) {
-                    particle.radius = std::stof(row[i]);
-                } else if (i == 5) {
-                    particle.delay = std::stof(row[i]);
+                    particle.radius = str_to_num(row[i], skip);
                 }
+            }
+
+            if (skip) {
+                continue;
             }
 
             if (particle.linked >= 0) {
