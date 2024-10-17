@@ -36,13 +36,6 @@ struct Simulation {
         path = file;
     }
 
-    void impose_bounds() {
-        for (Particle& i : particles.contents) {
-            i.position.x = std::clamp(i.position.x, 0.f, display_x - i.radius);
-            i.position.y = std::clamp(i.position.y, 0.f, display_y - i.radius);
-        }
-    }
-
     void assign_grid() {
 
         grid.clear();
@@ -167,7 +160,7 @@ struct Simulation {
 
         for (Particle& i : particles.contents) {
             circle.setPointCount(32);
-            circle.setRadius(i.radius * 1.5);
+            circle.setRadius(i.radius * 1.25);
             circle.setPosition(i.position);
             circle.setFillColor(i.color);
             window.draw(circle);
@@ -177,13 +170,21 @@ struct Simulation {
         window.display();
     }
  
-    void move(bool center, bool explode) {
+    void move(sf::RenderWindow& window, bool center, bool explode) {
 
         for (Particle& i : particles.contents) {
 
-            if (i.fixed) {
+            if (i.is_mouse) {
+                i.position.x = sf::Mouse::getPosition(window).x - i.radius;
+                i.position.y = sf::Mouse::getPosition(window).y - i.radius;
+            }
+
+            if (i.fixed || i.is_mouse) {
                 continue;
             }
+
+            i.position.x = std::clamp(i.position.x, 0.f, display_x - i.radius);
+            i.position.y = std::clamp(i.position.y, 0.f, display_y - i.radius);
 
             sf::Vector2f gravity = system_gravity;
             sf::Vector2f change = i.position - i.previous;
@@ -220,12 +221,11 @@ struct Simulation {
         }
                
         for (int i = 0; i < substeps; i++) {
-            impose_bounds();
             assign_grid();
             collide_grid();
             collide_linked(unlink);
             adjust_gravity(up, left, right, zero);
-            move(center, explode);
+            move(window, center, explode);
         }
 
         render(window, clock);

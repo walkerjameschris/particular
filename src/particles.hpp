@@ -30,6 +30,7 @@ struct Particle {
     float radius = 5;
     float delay = 0;
     sf::Color color = {0, 150, 255, 150};
+    bool is_mouse = false;
 };
 
 int str_to_int(std::string x, bool& skip) {
@@ -115,6 +116,11 @@ struct Particles {
             contents.push_back(particle);
             index += 1;
         }
+
+        Particle mouse;
+        mouse.is_mouse = true;
+        mouse.radius *= 5;
+        contents.push_back(mouse);
 
         for (int i : link_buffer) {
             if (i < contents.size()) {
