@@ -163,6 +163,7 @@ struct Simulation {
             circle.setRadius(i.radius * 1.25);
             circle.setPosition(i.position);
             circle.setFillColor(i.color);
+            circle.setOrigin({i.radius, i.radius});
             window.draw(circle);
         }
 
