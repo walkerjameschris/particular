@@ -11,9 +11,20 @@ int main(int argc, char* argv[]) {
     const int display_x = 1280;
     const int display_y = 720;
 
-    std::string path = validate_path(argc, argv);
+    std::string path;
+    std::string motion;
+    bool has_motion;
+
+    validate_path(argc, argv, path, motion, has_motion);
     
-    Simulation simulation(display_x, display_y, frame_rate, path);
+    Simulation simulation(
+        display_x,
+        display_y,
+        frame_rate,
+        path,
+        motion,
+        has_motion
+    );
     
     sf::VideoMode window_scale(display_x, display_y);
     sf::RenderWindow window(window_scale, "Particular");

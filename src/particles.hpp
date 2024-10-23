@@ -7,30 +7,50 @@
 #include <string>
 #include <vector>
 
-std::string validate_path(int argc, char* argv[]) {
+void validate_path(
+    int argc,
+    char* argv[],
+    std::string& path,
+    std::string& motion,
+    bool& has_motion
+) {
 
     if (argc < 2) {
         std::cout << "You must provide a spec path!\n";
         std::exit(1);
     }
 
-    if (!std::filesystem::exists(argv[1])) {
-        std::cout << "File does not exist!\n";
+    path = argv[1];
+
+    if (!std::filesystem::exists(path)) {
+        std::cout << "Specification file does not exist!\n";
         std::exit(1);
     }
 
-    return argv[1];
+    if (argc > 2) {
+        motion = argv[2];
+    }
+
+    if (std::filesystem::exists(motion)) {
+        has_motion = true;
+    }
 }
 
 struct Particle {
+
     sf::Vector2f position = {1, 1};
     sf::Vector2f previous = {1, 1};
+
+    sf::Color color = {0, 150, 255, 150};
+    float radius = 5;
+
     int linked = -1;
     bool fixed = false;
-    float radius = 5;
-    float delay = 0;
-    sf::Color color = {0, 150, 255, 150};
     bool is_mouse = false;
+
+    int current = 0;
+    bool fixed_motion = false;
+    std::vector<sf::Vector2f> motion;
 };
 
 int str_to_int(std::string x, bool& skip) {
@@ -58,7 +78,11 @@ struct Particles {
     std::vector<Particle> contents;
     std::vector<int> linked_particles;
 
-    void load_spec(std::string path = "") {
+    void load_spec(
+        std::string path,
+        std::string motion,
+        bool has_motion
+    ) {
 
         contents.clear();
         linked_particles.clear();
@@ -82,12 +106,12 @@ struct Particles {
         }
 
         file_buffer.close();
-        Particle particle;
         int index = 0;
 
         for (auto row : data) {
 
             bool skip = false;
+            Particle particle;
 
             for (int i = 0; i < row.size(); i++) {
                 if (i == 0) {
@@ -120,11 +144,58 @@ struct Particles {
         Particle mouse;
         mouse.is_mouse = true;
         mouse.radius *= 5;
+        mouse.color = {0, 0, 0, 0};
         contents.push_back(mouse);
 
         for (int i : link_buffer) {
             if (i < contents.size()) {
                 linked_particles.push_back(i);
+            }
+        }
+
+        if (has_motion) {
+
+            data.clear();
+            std::ifstream file_buffer(motion);
+            std::string line;
+
+            while (std::getline(file_buffer, line)) {
+
+                std::stringstream stream(line);
+                std::string value;
+                std::vector<std::string> row;
+
+                while (std::getline(stream, value, ',')) {
+                    row.push_back(value);
+                }
+
+                data.push_back(row);
+            }
+
+            file_buffer.close();
+
+            for (auto row : data) {
+
+                int index = 0;
+                bool skip = false;
+                sf::Vector2f location;
+
+                for (int i = 0; i < row.size(); i++) {
+                    if (i == 0) {
+                        index = str_to_int(row[i], skip);
+                    } else if (i == 1) {
+                        location.x = str_to_num(row[i], skip);
+                    } else if (i == 2) {
+                        location.y = str_to_num(row[i], skip);
+                    }
+                }
+
+                if (index >= contents.size()) {
+                    continue;
+                }
+
+                contents[index].motion.emplace_back(location);
+                contents[index].fixed_motion = true;
             }
         }
     }

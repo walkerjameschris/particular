@@ -18,6 +18,8 @@ struct Simulation {
     std::map<Key, std::vector<int>> grid;
     sf::Vector2f system_gravity;
     std::string path;
+    std::string motion;
+    bool has_motion;
     FPS fps_counter;
     
     float display_x;
@@ -28,12 +30,24 @@ struct Simulation {
     float force = 1000;
     float width = 18;
 
-    Simulation(int x, int y, int fps, std::string file) {
-        particles.load_spec(file);
+    Simulation(
+        int x,
+        int y,
+        int fps,
+        std::string file,
+        std::string motion_path,
+        bool is_motion
+    ) {
+
+        particles.load_spec(file, motion_path, is_motion);
+
         display_x = x;
         display_y = y;
         delta = 1 / float(fps * substeps);
+
         path = file;
+        motion = motion_path;
+        has_motion = is_motion;
     }
 
     void assign_grid() {
@@ -69,11 +83,11 @@ struct Simulation {
             float scalar = 0.5 * (distance - tolerance);
             sf::Vector2f divisor = scalar * change / distance;
 
-            if (!i.fixed) {
+            if (!i.fixed || i.fixed_motion) {
                 i.position -= divisor * i_ratio;
             }
 
-            if (!j.fixed) {
+            if (!j.fixed || j.fixed_motion) {
                 j.position += divisor * j_ratio;
             }
         }
@@ -180,7 +194,12 @@ struct Simulation {
                 i.position.y = sf::Mouse::getPosition(window).y - i.radius;
             }
 
-            if (i.fixed || i.is_mouse) {
+            if (i.fixed_motion) {
+                i.position = i.motion[i.current];
+                i.current = (i.current + 1) % i.motion.size();
+            }
+
+            if (i.fixed || i.is_mouse || i.fixed_motion) {
                 continue;
             }
 
@@ -218,7 +237,7 @@ struct Simulation {
     ) {
 
         if (reset) {
-            particles.load_spec(path);
+            particles.load_spec(path, motion, has_motion);
         }
                
         for (int i = 0; i < substeps; i++) {
