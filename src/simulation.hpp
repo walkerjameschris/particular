@@ -1,11 +1,8 @@
 #pragma once
 #include <SFML/Graphics.hpp>
-#include "fps_counter.hpp"
+#include "fps-counter.hpp"
 #include "particles.hpp"
-#include <algorithm>
-#include <utility>
 #include <vector>
-#include <string>
 #include <cmath>
 #include <map>
 
@@ -17,9 +14,6 @@ struct Simulation {
     sf::CircleShape circle;
     std::map<Key, std::vector<int>> grid;
     sf::Vector2f system_gravity;
-    std::string path;
-    std::string motion;
-    bool has_motion;
     FPS fps_counter;
     
     float display_x;
@@ -30,24 +24,14 @@ struct Simulation {
     float force = 1000;
     float width = 18;
 
-    Simulation(
-        int x,
-        int y,
-        int fps,
-        std::string file,
-        std::string motion_path,
-        bool is_motion
-    ) {
+    Simulation(int x, int y, int fps, int argc, char* argv[]) {
 
-        particles.load_spec(file, motion_path, is_motion);
+        particles.validate(argc, argv);
+        particles.reset();
 
         display_x = x;
         display_y = y;
         delta = 1 / float(fps * substeps);
-
-        path = file;
-        motion = motion_path;
-        has_motion = is_motion;
     }
 
     void assign_grid() {
@@ -153,7 +137,7 @@ struct Simulation {
         }
     }
 
-    void adjust_gravity(bool up, bool left, bool right, bool zero) {
+    void adjust_gravity(bool zero, bool up, bool left, bool right) {
 
         system_gravity = {0, force};
         
@@ -185,13 +169,18 @@ struct Simulation {
         window.display();
     }
  
-    void move(sf::RenderWindow& window, bool center, bool explode) {
+    void move(
+        sf::RenderWindow& window,
+        sf::Vector2i mouse,
+        bool center,
+        bool explode
+    ) {
 
         for (Particle& i : particles.contents) {
 
             if (i.is_mouse) {
-                i.position.x = sf::Mouse::getPosition(window).x - i.radius;
-                i.position.y = sf::Mouse::getPosition(window).y - i.radius;
+                i.position.x = mouse.x - i.radius;
+                i.position.y = mouse.y - i.radius;
             }
 
             if (i.fixed_motion) {
@@ -226,26 +215,27 @@ struct Simulation {
     void advance(
         sf::RenderWindow& window,
         sf::Clock& clock,
+        sf::Vector2i mouse,
+        bool reset,
         bool up,
         bool left,
         bool right,
         bool zero,
-        bool center,
         bool explode,
-        bool reset,
+        bool center,
         bool unlink
     ) {
 
         if (reset) {
-            particles.load_spec(path, motion, has_motion);
+            particles.reset();
         }
                
         for (int i = 0; i < substeps; i++) {
             assign_grid();
             collide_grid();
             collide_linked(unlink);
-            adjust_gravity(up, left, right, zero);
-            move(window, center, explode);
+            adjust_gravity(zero, up, left, right);
+            move(window, mouse, center, explode);
         }
 
         render(window, clock);

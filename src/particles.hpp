@@ -1,40 +1,8 @@
 #pragma once
 #include <SFML/Graphics.hpp>
+#include "data-reader.hpp"
 #include <filesystem>
 #include <iostream>
-#include <fstream>
-#include <sstream>
-#include <string>
-#include <vector>
-
-void validate_path(
-    int argc,
-    char* argv[],
-    std::string& path,
-    std::string& motion,
-    bool& has_motion
-) {
-
-    if (argc < 2) {
-        std::cout << "You must provide a spec path!\n";
-        std::exit(1);
-    }
-
-    path = argv[1];
-
-    if (!std::filesystem::exists(path)) {
-        std::cout << "Specification file does not exist!\n";
-        std::exit(1);
-    }
-
-    if (argc > 2) {
-        motion = argv[2];
-    }
-
-    if (std::filesystem::exists(motion)) {
-        has_motion = true;
-    }
-}
 
 struct Particle {
 
@@ -53,23 +21,13 @@ struct Particle {
     std::vector<sf::Vector2f> motion;
 };
 
-int str_to_int(std::string x, bool& skip) {
-
-    try {
-        return std::stoi(x);
-    } catch (...) {
-        skip = true;
-        return 0;
-    }
-}
-
-float str_to_num(std::string x, bool& skip) {
+float str_to_num(std::string x) {
 
     try {
         return std::stof(x);
     } catch (...) {
-        skip = true;
-        return 0;
+        std::cout << "Value cannot be coerced to number!\n";
+        std::exit(1);
     }
 }
 
@@ -78,63 +36,64 @@ struct Particles {
     std::vector<Particle> contents;
     std::vector<int> linked_particles;
 
-    void load_spec(
-        std::string path,
-        std::string motion,
-        bool has_motion
-    ) {
+    std::string main_path;
+    std::string motion_path;
+    bool has_motion = false;
+
+    void validate(int argc, char* argv[]) {
+
+        if (argc < 2) {
+            std::cout << "You must provide a main path!\n";
+            std::exit(1);
+        }
+
+        main_path = argv[1];
+
+        if (!std::filesystem::exists(main_path)) {
+            std::cout << "Specification file does not exist!\n";
+            std::exit(1);
+        }
+
+        if (argc > 2) {
+            motion_path = argv[2];
+        }
+
+        if (std::filesystem::exists(motion_path)) {
+            has_motion = true;
+        }
+    }
+
+    void reset() {
 
         contents.clear();
         linked_particles.clear();
-    
-        std::vector<std::vector<std::string>> data;
-        std::vector<int> link_buffer;
-        std::ifstream file_buffer(path);
-        std::string line;
 
-        while (std::getline(file_buffer, line)) {
-
-            std::stringstream stream(line);
-            std::string value;
-            std::vector<std::string> row;
-
-            while (std::getline(stream, value, ',')) {
-                row.push_back(value);
-            }
-
-            data.push_back(row);
-        }
-
-        file_buffer.close();
+        Data data = read_file(main_path);
+        std::vector<int> links_to_check;
         int index = 0;
 
         for (auto row : data) {
 
             bool skip = false;
             Particle particle;
+            std::string nicename = "Specification";
 
-            for (int i = 0; i < row.size(); i++) {
-                if (i == 0) {
-                    particle.position.x = str_to_num(row[i], skip);
-                    particle.previous.x = str_to_num(row[i], skip);
-                } else if (i == 1) {
-                    particle.position.y = str_to_num(row[i], skip);
-                    particle.previous.y = str_to_num(row[i], skip);
-                } else if (i == 2) {
-                    particle.linked = str_to_int(row[i], skip);
-                } else if (i == 3) {
-                    particle.fixed = 1 == str_to_int(row[i], skip);
-                } else if (i == 4) {
-                    particle.radius = str_to_num(row[i], skip);
-                }
+            if (row.size() != 4) {
+                std::cout << "Specification file is malformed!\n";
+                std::cout << "It must have the following structure:\n";
+                std::cout << "x, y, linked, fixed\n";
+                std::exit(1);
             }
 
-            if (skip) {
-                continue;
-            }
+            particle.position.x = str_to_num(row[0]);
+            particle.previous.x = str_to_num(row[0]);
+            particle.position.y = str_to_num(row[1]);
+            particle.previous.y = str_to_num(row[1]);
+            particle.linked = int(str_to_num(row[2]));
+            particle.fixed = 1 == int(str_to_num(row[3]));
 
             if (particle.linked >= 0) {
-                link_buffer.push_back(index);
+                links_to_check.push_back(index);
             }
 
             contents.push_back(particle);
@@ -147,7 +106,7 @@ struct Particles {
         mouse.color = {0, 0, 0, 0};
         contents.push_back(mouse);
 
-        for (int i : link_buffer) {
+        for (int i : links_to_check) {
             if (i < contents.size()) {
                 linked_particles.push_back(i);
             }
@@ -156,46 +115,31 @@ struct Particles {
         if (has_motion) {
 
             data.clear();
-            std::ifstream file_buffer(motion);
-            std::string line;
-
-            while (std::getline(file_buffer, line)) {
-
-                std::stringstream stream(line);
-                std::string value;
-                std::vector<std::string> row;
-
-                while (std::getline(stream, value, ',')) {
-                    row.push_back(value);
-                }
-
-                data.push_back(row);
-            }
-
-            file_buffer.close();
+            data = read_file(motion_path);
 
             for (auto row : data) {
 
                 int index = 0;
-                bool skip = false;
                 sf::Vector2f location;
 
-                for (int i = 0; i < row.size(); i++) {
-                    if (i == 0) {
-                        index = str_to_int(row[i], skip);
-                    } else if (i == 1) {
-                        location.x = str_to_num(row[i], skip);
-                    } else if (i == 2) {
-                        location.y = str_to_num(row[i], skip);
-                    }
+                 if (row.size() != 3) {
+                    std::cout << "Motion file is malformed!\n";
+                    std::cout << "It must have the following structure:\n";
+                    std::cout << "index, x, y\n";
+                    std::exit(1);
                 }
+
+                index = int(str_to_num(row[0]));
+                location.x = str_to_num(row[1]);
+                location.y = str_to_num(row[2]);
 
                 if (index >= contents.size()) {
                     continue;
                 }
 
-                contents[index].motion.emplace_back(location);
-                contents[index].fixed_motion = true;
+                Particle& motion_particle = contents[index];
+                motion_particle.motion.emplace_back(location);
+                motion_particle.fixed_motion = true;
             }
         }
     }
