@@ -21,35 +21,28 @@ struct Particle {
     std::vector<sf::Vector2f> motion;
 };
 
-float str_to_num(std::string x) {
-
-    try {
-        return std::stof(x);
-    } catch (...) {
-        std::cout << "Value cannot be coerced to number!\n";
-        std::exit(1);
-    }
-}
-
 struct Particles {
 
     std::vector<Particle> contents;
     std::vector<int> linked_particles;
 
-    std::string main_path;
+    std::string spec_path;
     std::string motion_path;
     bool has_motion = false;
+
+    std::string current_file;
+    int index = 1;
 
     void validate(int argc, char* argv[]) {
 
         if (argc < 2) {
-            std::cout << "You must provide a main path!\n";
+            std::cout << "You must provide a!\n";
             std::exit(1);
         }
 
-        main_path = argv[1];
+        spec_path = argv[1];
 
-        if (!std::filesystem::exists(main_path)) {
+        if (!std::filesystem::exists(spec_path)) {
             std::cout << "Specification file does not exist!\n";
             std::exit(1);
         }
@@ -63,23 +56,35 @@ struct Particles {
         }
     }
 
+    float str_to_num(std::string x) {
+
+        try {
+            return std::stof(x);
+        } catch (...) {
+            std::cout << "Problem found on line " + std::to_string(index);
+            std::cout << " of the " + current_file + " file: " + x + "\n";
+            std::exit(1);
+        }
+    }
+
     void reset() {
 
         contents.clear();
         linked_particles.clear();
 
-        Data data = read_file(main_path);
+        Data data = read_file(spec_path);
         std::vector<int> links_to_check;
-        int index = 0;
+        int id = 0;
 
-        for (auto row : data) {
+        for (Row row : data) {
 
             bool skip = false;
             Particle particle;
-            std::string nicename = "Specification";
+            current_file = "specifcation";
 
             if (row.size() != 4) {
-                std::cout << "Specification file is malformed!\n";
+                std::cout << "Specification file is malformed on line ";
+                std::cout << std::to_string(index) + "!\n";
                 std::cout << "It must have the following structure:\n";
                 std::cout << "x, y, linked, fixed\n";
                 std::exit(1);
@@ -93,11 +98,12 @@ struct Particles {
             particle.fixed = 1 == int(str_to_num(row[3]));
 
             if (particle.linked >= 0) {
-                links_to_check.push_back(index);
+                links_to_check.push_back(id);
             }
 
             contents.push_back(particle);
             index += 1;
+            id += 1;
         }
 
         Particle mouse;
@@ -116,30 +122,31 @@ struct Particles {
 
             data.clear();
             data = read_file(motion_path);
+            current_file = "motion";
+            index = 1;
 
-            for (auto row : data) {
+            for (Row row : data) {
 
-                int index = 0;
                 sf::Vector2f location;
 
                  if (row.size() != 3) {
-                    std::cout << "Motion file is malformed!\n";
+                    std::cout << "Motion file is malformed on line ";
+                    std::cout << std::to_string(index) + "!\n";
                     std::cout << "It must have the following structure:\n";
-                    std::cout << "index, x, y\n";
+                    std::cout << "id, x, y\n";
                     std::exit(1);
                 }
 
-                index = int(str_to_num(row[0]));
+                id = int(str_to_num(row[0]));
                 location.x = str_to_num(row[1]);
                 location.y = str_to_num(row[2]);
 
-                if (index >= contents.size()) {
+                if (id >= contents.size()) {
                     continue;
                 }
 
-                Particle& motion_particle = contents[index];
-                motion_particle.motion.emplace_back(location);
-                motion_particle.fixed_motion = true;
+                contents[id].motion.emplace_back(location);
+                contents[id].fixed_motion = true;
             }
         }
     }

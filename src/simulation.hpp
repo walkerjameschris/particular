@@ -179,8 +179,8 @@ struct Simulation {
         for (Particle& i : particles.contents) {
 
             if (i.is_mouse) {
-                i.position.x = mouse.x - i.radius;
-                i.position.y = mouse.y - i.radius;
+                i.position.x = mouse.x;
+                i.position.y = mouse.y;
             }
 
             if (i.fixed_motion) {

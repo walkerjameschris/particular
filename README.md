@@ -23,7 +23,6 @@ particles. Without these algorithimic improvements, I could only handle around
 
 Here is a list of features I am working on:
 
-* Pathing to define objects which move with regularity
 * Semi-rigid shapes like particles which form a box by targeting some angle
 * More control over the shape, color, and render effects of particles in config
 
@@ -45,7 +44,7 @@ mkdir build
 cd build
 cmake ..
 make
-./Verlet ../spec/fluid.csv
+./particular ../spec/fluid.csv
 ```
 
 # Contents
