@@ -23,8 +23,9 @@ particles. Without these algorithimic improvements, I could only handle around
 
 Here is a list of features I am working on:
 
-* Semi-rigid shapes like particles which form a box by targeting some angle
 * More control over the shape, color, and render effects of particles in config
+* More control over the simulation state
+* Documentation for use error messages
 
 # Build Instructions
 
@@ -44,7 +45,7 @@ mkdir build
 cd build
 cmake ..
 make
-./particular ../spec/fluid.csv
+./particular ../spec/fluid.csv --pass --pass
 ```
 
 # Contents

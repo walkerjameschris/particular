@@ -6,8 +6,6 @@
 #include <cmath>
 #include <map>
 
-using Key = std::pair<int, int>;
-
 struct Simulation {
 
     Particles particles;
@@ -47,7 +45,13 @@ struct Simulation {
         }
     }
 
-    void verlet(Particle& i, Particle& j, bool linked) {
+    void verlet(
+        Particle& i,
+        Particle& j,
+        bool linked,
+        bool softbody,
+        float adj_target = 0
+    ) {
 
         sf::Vector2f change = i.position - j.position;
 
@@ -58,7 +62,11 @@ struct Simulation {
         float d_sqrd = change.x * change.x + change.y * change.y;
         float tolerance = i.radius + j.radius;
 
-        if ((d_sqrd < tolerance * tolerance) || linked) {
+        if (softbody) {
+            tolerance = adj_target;
+        }
+
+        if ((d_sqrd < tolerance * tolerance) || linked || softbody) {
 
             float distance = sqrt(d_sqrd);
             float i_ratio = i.radius / tolerance;
@@ -103,11 +111,15 @@ struct Simulation {
                 Particle& i = particles.contents[i_id];
                 Particle& j = particles.contents[j_id];
 
+                if (i.softbody && j.softbody && (i.body_id == j.body_id)) {
+                    continue;
+                }
+
                 if (i.linked == j_id || j.linked == i_id) {
                     continue;
                 }
                 
-                verlet(i, j, false);
+                verlet(i, j, false, false);
             }
         }
     }
@@ -133,7 +145,33 @@ struct Simulation {
         for (int index : particles.linked_particles) {
             Particle& i = particles.contents[index];
             Particle& j = particles.contents[i.linked];
-            verlet(i, j, true);
+            verlet(i, j, true, false);
+        }
+    }
+
+    void collide_softbody() {
+        
+        for (auto& softbody : particles.softbodies) {
+
+            std::vector<int> indices = softbody.second;
+
+            for (int i = 0; i < indices.size(); i++) {
+                for (int j = i + 1; j < indices.size(); j++) {
+
+                    int a = indices[i];
+                    int b = indices[j];
+
+                    float dist = particles.softbody_distances[{a, b}];
+
+                    verlet(
+                        particles.contents[a],
+                        particles.contents[b],
+                        false,
+                        true,
+                        dist
+                    );
+                }
+            }
         }
     }
 
@@ -233,9 +271,10 @@ struct Simulation {
         for (int i = 0; i < substeps; i++) {
             assign_grid();
             collide_grid();
+            collide_softbody();
             collide_linked(unlink);
-            adjust_gravity(zero, up, left, right);
             move(window, mouse, center, explode);
+            adjust_gravity(zero, up, left, right);
         }
 
         render(window, clock);
