@@ -45,12 +45,12 @@ struct Particles {
     void apply_specification() {
 
         linked_particles.clear();
-        Data data = reader.read_spec();
+        FileData data = reader.read_spec();
 
         std::vector<int> links_to_check;
         int id = 0;
 
-        for (std::vector<float> row : data) {
+        for (FileRow row : data) {
 
             Particle particle;
 
@@ -84,11 +84,11 @@ struct Particles {
 
     void apply_motion() {
 
-        Data data = reader.read_motion();
+        FileData data = reader.read_motion();
         
         std::map<int, int> ids;
 
-        for (std::vector<float> row : data) {
+        for (FileRow row : data) {
 
             sf::Vector2f location;
 
@@ -111,14 +111,13 @@ struct Particles {
     void apply_softbody() {
 
         softbodies.clear();
-        Data data = reader.read_softbody();
+        FileData data = reader.read_softbody();
 
         std::map<int, std::vector<int>> bodies;
 
-        for (std::vector<float> row : data) {
+        for (FileRow row : data) {
 
             Particle particle;
-
 
             int body_id = int(row[0]);
             int content_id = contents.size();
@@ -142,10 +141,6 @@ struct Particles {
 
             for (int i = 0; i < indices.size(); i++) {
                 for (int j = i + 1; j < indices.size(); j++) {
-
-                    if (unif() < 0.5) {
-                        continue;
-                    }
 
                     int a = indices[i];
                     int b = indices[j];
