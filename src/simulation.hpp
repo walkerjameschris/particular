@@ -10,7 +10,7 @@ struct Simulation {
 
     Particles particles;
     sf::CircleShape circle;
-    std::map<Key, std::vector<int>> grid;
+    std::map<std::pair<int, int>, std::vector<int>> grid;
     sf::Vector2f system_gravity;
     FPS fps_counter;
     
@@ -85,7 +85,10 @@ struct Simulation {
         }
     }
 
-    void collide_inner_grid(Key inner_id, Key outer_id) {
+    void collide_inner_grid(
+        std::pair<int, int> inner_id,
+        std::pair<int, int> outer_id
+    ) {
 
         std::vector<int>& inner = grid[inner_id];
         std::vector<int>& outer = grid[outer_id];
@@ -127,7 +130,7 @@ struct Simulation {
     void collide_grid() {
 
         for (auto& element : grid) {
-            Key x = element.first;
+            std::pair<int, int> x = element.first;
             for (int a = x.first - 1; a < (x.first + 1); a++) {
                 for (int b = x.second - 1; b < (x.second + 1); b++) {
                     collide_inner_grid({x.first, x.second}, {a, b});
@@ -152,26 +155,14 @@ struct Simulation {
     void collide_softbody() {
         
         for (auto& softbody : particles.softbodies) {
+            for (auto& pairing : softbody.second) {
 
-            std::vector<int> indices = softbody.second;
-
-            for (int i = 0; i < indices.size(); i++) {
-                for (int j = i + 1; j < indices.size(); j++) {
-
-                    int a = indices[i];
-                    int b = indices[j];
-
-                    float dist = particles.softbody_distances[{a, b}];
-
-                    verlet(
-                        particles.contents[a],
-                        particles.contents[b],
-                        false,
-                        true,
-                        dist
-                    );
-                }
-            }
+                Particle& i = particles.contents[pairing.first.first];
+                Particle& j = particles.contents[pairing.first.second];
+                float dist = pairing.second;
+                
+                verlet(i, j, false, true, dist);
+            }            
         }
     }
 
