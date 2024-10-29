@@ -10,7 +10,7 @@ struct Simulation {
 
     Particles particles;
     sf::CircleShape circle;
-    std::map<std::pair<int, int>, std::vector<int>> grid;
+    std::map<Key, std::vector<int>> grid;
     sf::Vector2f system_gravity;
     FPS fps_counter;
     
@@ -85,10 +85,7 @@ struct Simulation {
         }
     }
 
-    void collide_inner_grid(
-        std::pair<int, int> inner_id,
-        std::pair<int, int> outer_id
-    ) {
+    void collide_inner_grid(Key inner_id, Key outer_id) {
 
         std::vector<int>& inner = grid[inner_id];
         std::vector<int>& outer = grid[outer_id];
@@ -130,7 +127,7 @@ struct Simulation {
     void collide_grid() {
 
         for (auto& element : grid) {
-            std::pair<int, int> x = element.first;
+            Key x = element.first;
             for (int a = x.first - 1; a < (x.first + 1); a++) {
                 for (int b = x.second - 1; b < (x.second + 1); b++) {
                     collide_inner_grid({x.first, x.second}, {a, b});

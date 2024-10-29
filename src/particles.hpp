@@ -4,7 +4,8 @@
 #include <cmath>
 #include <set>
 
-using Softbody = std::map<std::pair<int, int>, float>;
+using Key = std::pair<int, int>;
+using Softbody = std::map<Key, float>;
 using Softbodies = std::map<int, Softbody>;
 
 struct Particle {
