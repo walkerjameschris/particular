@@ -59,6 +59,19 @@ any column header. This means the first row in each file is data.
 
 `./particular ../spec/fluid.csv --pass --pass`
 
+You can control a simulation with a few commands! Here is a list of the 
+keyboard commands `particular` supports while running:
+
+| Key | Action |
+| --- | ------ |
+| W | Sets gravity upward |
+| A | Sets gravity to the left |
+| D | Sets gravity to the right |
+| Z | Zero gravity |
+| X | Explode gravity to the edges |
+| C | Pull particles to the center |
+| R | Reset the simulation |
+
 ### Specification Files
 
 The most basic type of file is a _specification_ file. This is the most
@@ -73,10 +86,6 @@ your machine. It contains four columns described below:
 | 2 | The starting y position of a particle (0-720) | `322.12` |
 | 3 | The index of a linked particle (-1 for no links) | `2` |
 | 4 | Whether the particle should be fixed in one place (0 or 1) | `0` |
-
-> [!TIP]
-> If you want the first to particles to be linked, put -1 in the first
-> row and 0 in the second row in column 3.
 
 `./particular ../spec/fluid.csv --pass --pass`
 
@@ -128,6 +137,41 @@ the simulation, they will solve for distance within each other.
 `./particular ../spec/fluid.csv ../spec/circle.csv ..spec/square.csv`
 
 <img src="https://raw.githubusercontent.com/walkerjameschris/particular/main/img/softbody.png" height="150" />
+
+# Your Turn
+
+Here I have a template for creating a simulation with all three file types.
+See if you can do the following:
+
+1. Put this data in three accessible text files
+2. Determine the commands necessary to run this simulation
+3. Make tweaks to the files to customize your simulation
+
+### Specification
+
+```
+10,10,-1,0
+10,20,0,0
+20,20,-1,1
+40,40,-1,0
+```
+
+### Motion
+
+```
+1,200,200
+1,200,210
+1,200,220
+```
+
+### Softbody
+
+```
+1,300,300
+1,300,310
+1,310,300
+2,310,310
+```
 
 # Feature Manifest
 
