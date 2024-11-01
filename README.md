@@ -40,10 +40,10 @@ make
 ./particular ../spec/fluid.csv --pass --pass
 ```
 
-> [!TIP]
-> Once `particular` is built, you can move the binary to wherever you'd like.
-> However, be mindful that paths for simulation files are _relative_ to the 
-> location of the binary on your system.
+> [!IMPORTANT]
+> `particular` can only be run from the `build/` directory. This is because
+> it loads a font file from `font/` for rendering the FPS counter while the
+> simulation is running.
 
 # Running Simulations
 
@@ -59,7 +59,7 @@ any column header. This means the first row in each file is data.
 
 `./particular ../spec/fluid.csv --pass --pass`
 
-## Specification Files 
+### Specification Files
 
 The most basic type of file is a _specification_ file. This is the most
 fundamental file in any simulation. Each row corresponds to one particle
@@ -80,7 +80,7 @@ your machine. It contains four columns described below:
 
 `./particular ../spec/fluid.csv --pass --pass`
 
-## Motion Files
+### Motion Files
 
 This file type allows you to describe a particle with a motion path.
 For example, suppose you wanted to describe a particle which moves back
@@ -100,7 +100,7 @@ will restart as long as the simulation runs.
 
 `./particular ../spec/fluid.csv ../spec/circle.csv --pass`
 
-## Softbody Files
+### Softbody Files
 
 Finally, we have softbody files. These files allow you to describe
 softbodies where a softbody is a collection of particles which remain
