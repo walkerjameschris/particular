@@ -1,4 +1,4 @@
-# particular <a><img src="https://raw.githubusercontent.com/walkerjameschris/verlet-motion/main/img/logo.png" align="right" height="138" /></a>
+# particular <a><img src="https://raw.githubusercontent.com/walkerjameschris/particular/main/img/logo.png" align="right" height="138" /></a>
 
 A particle simulator written in C++ using Verlet integration for collision and
 motion. Verlet integreation solves for particle collisions by repeatedly moving
@@ -80,7 +80,7 @@ your machine. It contains four columns described below:
 
 `./particular ../spec/fluid.csv --pass --pass`
 
-<img src="https://raw.githubusercontent.com/walkerjameschris/verlet-motion/main/img/spec.png" height="150" />
+<img src="https://raw.githubusercontent.com/walkerjameschris/particular/main/img/spec.png" height="150" />
 
 ### Motion Files
 
@@ -102,7 +102,7 @@ will restart as long as the simulation runs.
 
 `./particular ../spec/fluid.csv ../spec/circle.csv --pass`
 
-<img src="https://raw.githubusercontent.com/walkerjameschris/verlet-motion/main/img/motion.png" height="150" />
+<img src="https://raw.githubusercontent.com/walkerjameschris/particular/refs/heads/main/img/motion.png" height="150" />
 
 ### Softbody Files
 
@@ -127,7 +127,7 @@ the simulation, they will solve for distance within each other.
 
 `./particular ../spec/fluid.csv ../spec/circle.csv ..spec/square.csv`
 
-<img src="https://raw.githubusercontent.com/walkerjameschris/verlet-motion/main/img/softbody.png" height="150" />
+<img src="https://raw.githubusercontent.com/walkerjameschris/particular/main/img/softbody.png" height="150" />
 
 # Feature Manifest
 
