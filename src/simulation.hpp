@@ -19,9 +19,9 @@ struct Simulation {
     float display_y;
     float delta;
 
-    int substeps = 3;
-    float force = 1000;
-    float width = 18;
+    const int substeps = 3;
+    const float force = 1000;
+    const float width = 18;
 
     Simulation(int x, int y, int fps, int argc, char* argv[]) {
 
@@ -86,11 +86,14 @@ struct Simulation {
         }
     }
 
-    void collide_inner_grid(Key inner_id, Key outer_id) {
+    void collide_inner_grid(
+        std::vector<int>& inner,
+        Key inner_id,
+        Key outer_id
+    ) {
 
-        std::vector<int>& inner = grid[inner_id];
-        std::vector<int>& outer = grid[outer_id];
         bool same_cell = inner_id == outer_id;
+        std::vector<int>& outer = grid[outer_id];
 
         int start = 0;
 
@@ -128,10 +131,13 @@ struct Simulation {
     void collide_grid() {
 
         for (auto& element : grid) {
-            Key x = element.first;
-            for (int a = x.first - 1; a < (x.first + 1); a++) {
-                for (int b = x.second - 1; b < (x.second + 1); b++) {
-                    collide_inner_grid({x.first, x.second}, {a, b});
+
+            Key id = element.first;
+            std::vector<int>& inner = element.second;
+
+            for (int a = id.first - 1; a < (id.first + 1); a++) {
+                for (int b = id.second - 1; b < (id.second + 1); b++) {
+                    collide_inner_grid(inner, id, {a, b});
                 }
             }
         }
