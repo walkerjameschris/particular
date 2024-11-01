@@ -160,8 +160,8 @@ See if you can do the following:
 
 ```
 1,200,200
-1,200,210
-1,200,220
+1,200,300
+1,200,400
 ```
 
 ### Softbody
@@ -170,7 +170,7 @@ See if you can do the following:
 1,300,300
 1,300,310
 1,310,300
-2,310,310
+1,310,310
 ```
 
 # Feature Manifest
