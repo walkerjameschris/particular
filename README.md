@@ -19,14 +19,6 @@ which is an x86 Linux machine, I can acheive good frame rates for about 5000
 particles. Without these algorithimic improvements, I could only handle around
 500 particles.
 
-# Feature Manifest
-
-Here is a list of features I am working on:
-
-* More control over the shape, color, and render effects of particles in config
-* More control over the simulation state
-* Documentation for use error messages
-
 # Build Instructions
 
 This project depends on `SFML` to display the simulation window. You can visit
@@ -47,6 +39,96 @@ cmake ..
 make
 ./particular ../spec/fluid.csv --pass --pass
 ```
+
+> [!TIP]
+> Once `particular` is built, you can move the binary to wherever you'd like.
+> However, be mindful that paths for simulation files are _relative_ to the 
+> location of the binary on your system.
+
+# Running Simulations
+
+This repository comes with several simulations ready to go! You can find these
+in the `spec/` directory. `particular` ingests three different types of files
+when describing a simulation. These files are all comma-separated without
+any column header. This means the first row in each file is data.
+
+> [!IMPORTANT]  
+> Every time you run `particular` you must provide a path to each of the
+> three file types or put `--pass` in that position. For example, if I 
+> wanted to use a specification file and no other files, I would put:
+
+`./particular ../spec/fluid.csv --pass --pass`
+
+## Specification Files 
+
+The most basic type of file is a _specification_ file. This is the most
+fundamental file in any simulation. Each row corresponds to one particle
+in a running simulation. `particular` is efficient enough to handle a
+few thousand particles at once, but this depends on the performance of
+your machine. It contains four columns described below:
+
+| Column | Note | Example |
+| ------ | ---- | ------- |
+| 1 | The starting x position of a particle (0-1280) | `126.32` |
+| 2 | The starting y position of a particle (0-720) | `322.12` |
+| 3 | The index of a linked particle (-1 for no links) | `2` |
+| 4 | Whether the particle should be fixed in one place (0 or 1) | `0` |
+
+> [!TIP]
+> If you want the first to particles to be linked, put -1 in the first
+> row and 0 in the second row in column 3.
+
+`./particular ../spec/fluid.csv --pass --pass`
+
+## Motion Files
+
+This file type allows you to describe a particle with a motion path.
+For example, suppose you wanted to describe a particle which moves back
+and forth with regularity and crashes into other particles. You can
+do that with motion files!
+
+Unlike specification files, _motion_ files do not create a new particle
+for each row in the file. Instead, each row describes the position of
+a particle for one frame within that path ID. Once a path ends, it 
+will restart as long as the simulation runs.
+
+| Column | Note | Example |
+| ------ | ---- | ------- |
+| 1 | The motion path ID | `1` |
+| 2 | The y position at this step | `322.12` |
+| 3 | The x position at this step | `223.56` |
+
+`./particular ../spec/fluid.csv ../spec/circle.csv --pass`
+
+## Softbody Files
+
+Finally, we have softbody files. These files allow you to describe
+softbodies where a softbody is a collection of particles which remain
+at constant distance from each other to form semi-rigid shapes. For
+example, a square, circle, or any other arbitrary shape!
+
+Each row in this file is a particle which is part of a softbody ID.
+Even though particles in a softbody will move with other particles in
+the simulation, they will solve for distance within each other.
+
+| Column | Note | Example |
+| ------ | ---- | ------- |
+| 1 | The softbody path ID | `1` |
+| 2 | The y position at this step | `322.12` |
+| 3 | The x position at this step | `223.56` |
+
+> [!WARNING]  
+> Softbodies are very computationally intensive, espescially for bodies
+> with many particles.
+
+`./particular ../spec/fluid.csv ../spec/circle.csv ..spec/square.csv`
+
+# Feature Manifest
+
+Here is a list of features I am working on:
+
+* More control over the shape, color, and render effects of particles in config
+* More control over the simulation state
 
 # Contents
 

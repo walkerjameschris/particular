@@ -1,4 +1,5 @@
 #pragma once
+
 #include <SFML/Graphics.hpp>
 #include "data-reader.hpp"
 #include <cmath>
@@ -19,12 +20,13 @@ struct Particle {
     int linked = -1;
     bool fixed = false;
     bool is_mouse = false;
-
+    
     int current = 0;
     bool fixed_motion = false;
-    bool softbody = false;
-    int body_id = -1;
     std::vector<sf::Vector2f> motion;
+
+    int body_id = -1;
+    bool softbody = false;
 };
 
 struct Particles {
@@ -33,15 +35,6 @@ struct Particles {
     std::vector<int> linked_particles;
     Softbodies softbodies;
     Reader reader;
-
-    static float get_distance(Particle a, Particle b) {
-        sf::Vector2f change = a.position - b.position;
-        return sqrt(change.x * change.x + change.y * change.y);
-    }
-
-    static float unif() {
-        return float(rand()) / float(RAND_MAX);
-    }
 
     void apply_specification() {
 
@@ -146,7 +139,11 @@ struct Particles {
                     int a = indices[i];
                     int b = indices[j];
 
-                    float dist = get_distance(contents[a], contents[b]);
+                    sf::Vector2f a_pos = contents[a].position;
+                    sf::Vector2f b_pos = contents[b].position;
+                    sf::Vector2f change = a_pos - b_pos;
+
+                    float dist = sqrt(change.x * change.x + change.y * change.y);
 
                     softbodies[body_id][{a, b}] = dist;
                 }
@@ -163,5 +160,6 @@ struct Particles {
         apply_specification();
         apply_motion();
         apply_softbody();
+        reader.first_load = false;
     }
 };

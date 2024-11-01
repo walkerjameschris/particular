@@ -1,4 +1,5 @@
 #pragma once
+
 #include <SFML/Graphics.hpp>
 #include "fps-counter.hpp"
 #include "particles.hpp"

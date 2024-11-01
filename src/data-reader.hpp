@@ -1,4 +1,5 @@
 #pragma once
+
 #include <filesystem>
 #include <iostream>
 #include <fstream>
@@ -11,6 +12,8 @@ using FileData = std::vector<FileRow>;
 
 struct Reader {
 
+    bool first_load = true;
+
     bool has_spec = true;
     bool has_motion = true;
     bool has_softbody = true;
@@ -19,18 +22,22 @@ struct Reader {
     std::string motion_path;
     std::string softbody_path;
 
+    FileData spec_data;
+    FileData motion_data;
+    FileData softbody_data;
+
     static bool check_path(std::string path, std::string file) {
 
         if (path == "--pass") {
             return false;
         }
 
-        if (std::filesystem::exists(path)) {
+        if (std::filesystem::is_regular_file(path)) {
             return true;
         }
 
-        std::cout << file + " path does not exist!\n";
-        std::cout << "Tip: you can skip with '--pass'\n";
+        std::cout << file + " path is not a regular file!\n";
+        std::cout << "You can skip simulation components with '--pass'\n";
         std::exit(1);
     }
 
@@ -39,8 +46,8 @@ struct Reader {
         if (argc < 4) {
             std::cout << "You must provide '--pass' or a path!\n";
             std::cout << "The commands follow this order:\n";
-            std::cout << "Specification, Motion, Softbody\nTip: ";
-            std::cout << "./particular ../spec/fluid.csv --pass --pass\n";
+            std::cout << "./particular <specification> <motion> <softbody>\n";
+            std::cout << "Tip: ./particular ../spec/fluid.csv --pass --pass\n";
             std::exit(1);
         }
 
@@ -111,62 +118,56 @@ struct Reader {
 
     FileData read_spec() {
 
-        FileData data;
-
-        if (!has_spec) {
-            return data;
+        if (!has_spec || !first_load) {
+            return spec_data;
         }
 
         std::string file_name = "Specification";
-        data = read_file(spec_path, file_name);
+        spec_data = read_file(spec_path, file_name);
         int index = 1;
 
-        for (FileRow& row : data) {
-            check_row(4, index, row, "x, y, linked, fixed", file_name);
+        for (FileRow& row : spec_data) {
+            check_row(4, index, row, "x, y, linked-index, fixed", file_name);
             index += 1;
         }
 
-        return data;
+        return spec_data;
     }
 
     FileData read_motion() {
 
-        FileData data;
-
-        if (!has_motion) {
-            return data;
+        if (!has_motion || !first_load) {
+            return motion_data;
         }
 
         std::string file_name = "Motion";
-        data = read_file(motion_path, file_name);
+        motion_data = read_file(motion_path, file_name);
         int index = 1;
 
-        for (FileRow& row : data) {
+        for (FileRow& row : motion_data) {
             check_row(3, index, row, "path-id, x, y", file_name);
             index += 1;
         }
 
-        return data;
+        return motion_data;
     }
 
     FileData read_softbody() {
 
-        FileData data;
-
-        if (!has_softbody) {
-            return data;
+        if (!has_softbody || !first_load) {
+            return softbody_data;
         }
 
         std::string file_name = "Softbody";
-        data = read_file(softbody_path, file_name);
+        softbody_data = read_file(softbody_path, file_name);
         int index = 1;
 
-        for (FileRow& row : data) {
+        for (FileRow& row : softbody_data) {
             check_row(3, index, row, "shape-id, x, y", file_name);
             index += 1;
         }
 
-        return data;
+        return softbody_data;
     }
 };
 
