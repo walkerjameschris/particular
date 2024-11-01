@@ -80,6 +80,8 @@ your machine. It contains four columns described below:
 
 `./particular ../spec/fluid.csv --pass --pass`
 
+<img src="https://raw.githubusercontent.com/walkerjameschris/verlet-motion/main/img/spec.png" height="150" />
+
 ### Motion Files
 
 This file type allows you to describe a particle with a motion path.
@@ -99,6 +101,8 @@ will restart as long as the simulation runs.
 | 3 | The x position at this step | `223.56` |
 
 `./particular ../spec/fluid.csv ../spec/circle.csv --pass`
+
+<img src="https://raw.githubusercontent.com/walkerjameschris/verlet-motion/main/img/motion.png" height="150" />
 
 ### Softbody Files
 
@@ -122,6 +126,8 @@ the simulation, they will solve for distance within each other.
 > with many particles.
 
 `./particular ../spec/fluid.csv ../spec/circle.csv ..spec/square.csv`
+
+<img src="https://raw.githubusercontent.com/walkerjameschris/verlet-motion/main/img/softbody.png" height="150" />
 
 # Feature Manifest
 
