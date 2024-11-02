@@ -15,7 +15,7 @@ struct Particle {
     sf::Vector2f previous = {1, 1};
 
     sf::Color color = {0, 150, 255, 150};
-    float radius = 5;
+    float radius = 6;
 
     int linked = -1;
     bool fixed = false;
